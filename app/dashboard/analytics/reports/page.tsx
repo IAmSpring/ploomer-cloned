@@ -1,37 +1,38 @@
-import React from 'react'
-import { getServerSession } from 'next-auth'
-import { prisma } from '@/lib/prisma'
-import { FiltersProvider } from '@/contexts/FiltersContext'
-import ReportBuilder from '../components/ReportBuilder'
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import SavedReportsList from '../components/SavedReportsList'
-import { Button } from '@tremor/react'
-import { Plus } from 'lucide-react'
+import ReportBuilder from '../components/ReportBuilder'
+import { useReports } from '@/hooks/useReports'
 
-export default async function ReportsPage() {
-  const session = await getServerSession()
-  
-  if (!session?.user?.id) return null
+export default function ReportsPage() {
+  const router = useRouter()
+  const { reports, deleteReport, shareReport } = useReports()
+  const [showBuilder, setShowBuilder] = useState(false)
 
-  const reports = await prisma.report.findMany({
-    where: { userId: session.user.id },
-    orderBy: { updatedAt: 'desc' }
-  })
+  const handleView = (id: string) => {
+    router.push(`/dashboard/analytics/reports/${id}`)
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteReport(id)
+    router.refresh()
+  }
+
+  const handleShare = (id: string) => {
+    shareReport(id)
+  }
 
   return (
-    <FiltersProvider>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Analytics Reports</h1>
-          <Button icon={Plus}>Create New Report</Button>
-        </div>
-        <SavedReportsList
-          reports={reports}
-          onView={(id) => {}}
-          onDelete={(id) => {}}
-          onShare={(id) => {}}
-        />
-        <ReportBuilder />
-      </div>
-    </FiltersProvider>
+    <div className="space-y-6">
+      <SavedReportsList
+        reports={reports}
+        onView={handleView}
+        onDelete={handleDelete}
+        onShare={handleShare}
+      />
+      {showBuilder && <ReportBuilder />}
+    </div>
   )
 } 

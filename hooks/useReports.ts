@@ -1,46 +1,43 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Report } from '@/types/analytics'
 
 export function useReports() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
-  const [selectedReport, setSelectedReport] = useState<{
-    id: string
-    name: string
-  } | null>(null)
+  const [reports, setReports] = useState<Report[]>([])
 
-  const deleteReport = async (reportId: string) => {
+  const deleteReport = async (id: string) => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/reports?id=${reportId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/reports?id=${id}`, {
+        method: 'DELETE',
       })
-
+      
       if (!response.ok) throw new Error('Failed to delete report')
-
-      router.refresh()
+      
+      setReports(prev => prev.filter(report => report.id !== id))
     } catch (error) {
       console.error('Error deleting report:', error)
-      // Show error notification
-    } finally {
-      setLoading(false)
     }
   }
 
-  const shareReport = (report: { id: string; name: string }) => {
-    setSelectedReport(report)
-    setShowShareModal(true)
+  const shareReport = async (id: string) => {
+    try {
+      const response = await fetch(`/api/reports/${id}/share`, {
+        method: 'POST',
+      })
+      
+      if (!response.ok) throw new Error('Failed to share report')
+      
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error sharing report:', error)
+    }
   }
 
   return {
+    reports,
     deleteReport,
     shareReport,
-    loading,
-    showShareModal,
-    setShowShareModal,
-    selectedReport
   }
 } 

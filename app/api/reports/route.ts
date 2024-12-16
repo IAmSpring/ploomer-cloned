@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { prisma } from '@/lib/prisma'
 import type { Report } from '@/types/analytics'
 
@@ -64,7 +64,15 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(reports)
+    const convertedReports: Report[] = reports.map(report => ({
+      ...report,
+      filters: report.filters as Report['filters'],
+      layout: report.layout as Report['layout'],
+      description: report.description || null,
+      shareToken: report.shareToken || null
+    }))
+
+    return NextResponse.json(convertedReports)
   } catch (error) {
     console.error('Error fetching reports:', error)
     return NextResponse.json(

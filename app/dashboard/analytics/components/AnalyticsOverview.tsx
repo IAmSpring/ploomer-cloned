@@ -5,6 +5,7 @@ import { Card, Metric, Text, Flex, Grid } from '@tremor/react'
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import LoadingSkeleton from './LoadingSkeleton'
+import { Report } from '@/types/analytics'
 
 interface MetricCardProps {
   title: string
@@ -35,6 +36,31 @@ function MetricCard({ title, metric, subtext, trend }: MetricCardProps) {
       <Text className="mt-2">{subtext}</Text>
     </Card>
   )
+}
+
+const defaultReport: Report = {
+  id: 'default',
+  name: 'Analytics Overview',
+  description: null,
+  filters: {
+    dateRange: '30d',
+    eventTypes: [],
+    userGroups: [],
+    view: 'detailed'
+  },
+  layout: {
+    components: [{
+      id: 'overview',
+      type: 'metrics',
+      title: 'Overview Metrics',
+      size: 'large'
+    }]
+  },
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  userId: 'system',
+  isPublic: false,
+  shareToken: null
 }
 
 export default function AnalyticsOverview() {

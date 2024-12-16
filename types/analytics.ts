@@ -17,6 +17,18 @@ export interface AnalyticsData {
   topUsers: TopUser[]
 }
 
+export interface RealTimeData {
+  metrics: Array<{
+    type: string
+    _count: number
+  }>
+  activities: Array<{
+    timestamp: string
+    _count: number
+  }>
+  topUsers: TopUser[]
+}
+
 export interface UserData {
   name: string
   value: number
@@ -28,7 +40,7 @@ export interface UserData {
 export interface Report {
   id: string
   name: string
-  description?: string
+  description: string | null
   filters: {
     dateRange: string
     eventTypes: string[]
@@ -47,7 +59,7 @@ export interface Report {
   updatedAt: Date
   userId: string
   isPublic: boolean
-  shareToken?: string
+  shareToken: string | null
 }
 
 export interface ReportViewerProps {

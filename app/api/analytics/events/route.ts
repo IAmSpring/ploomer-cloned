@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
-import { getSocket } from '@/lib/socket'
+import { io } from '@/lib/socket'
 
 export async function POST(request: Request) {
   const session = await getServerSession()
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   try {
     const { event, data } = await request.json()
-    const socket = getSocket()
+    const socket = io
 
     if (socket) {
       // Save event to database

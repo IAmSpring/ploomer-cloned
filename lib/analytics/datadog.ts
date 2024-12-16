@@ -19,13 +19,13 @@ export function initDatadog() {
   })
 }
 
-export function trackUser(user: { id: string; email?: string; name?: string }) {
+export function trackUser(user: { id: string; email?: string | null; name?: string | null }) {
   if (typeof window === 'undefined') return
 
   datadogRum.setUser({
     id: user.id,
-    name: user.name,
-    email: user.email
+    name: user.name || undefined,
+    email: user.email || undefined
   })
 }
 

@@ -1,7 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { initializeSocket } from '@/lib/socket'
+import { initializeSocket } from '@/lib/socketClient'
+import { useSession } from 'next-auth/react'
 
 interface Notification {
   id: string

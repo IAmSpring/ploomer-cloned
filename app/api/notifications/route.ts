@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { getSocket } from '@/lib/socket'
+import { getServerSession } from 'next-auth/next'
+import { io } from '@/lib/socket'
 
 export async function POST(request: Request) {
   const session = await getServerSession()
@@ -13,15 +13,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { type, message } = await request.json()
-    const socket = getSocket()
+    const data = await request.json()
 
-    if (socket) {
-      socket.to(`user:${session.user.id}`).emit('notification', {
-        type,
-        message,
-      })
-    }
+    io?.to(`user:${session.user.id}`).emit('notification', {
+      type: data.type,
+      message: data.message,
+      timestamp: new Date()
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

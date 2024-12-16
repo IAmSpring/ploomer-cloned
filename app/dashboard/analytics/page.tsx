@@ -15,6 +15,7 @@ import TimeSeriesChart from './components/TimeSeriesChart'
 import { AnalyticsProvider } from '@/contexts/AnalyticsContext'
 import ReportViewer from './components/ReportViewer'
 import type { Report } from '@/types/analytics'
+import { initializeSocket } from '@/lib/socketClient'  // Client-side socket
 
 export default async function AnalyticsPage() {
   const session = await getServerSession()
@@ -24,6 +25,7 @@ export default async function AnalyticsPage() {
   const report: Report = {
     id: 'default',
     name: 'Analytics Overview',
+    description: null,
     filters: {
       dateRange: '30d',
       eventTypes: [],
@@ -32,13 +34,31 @@ export default async function AnalyticsPage() {
     },
     layout: {
       components: [
-        // ... your components configuration
+        {
+          id: 'overview',
+          type: 'metrics',
+          title: 'Overview Metrics',
+          size: 'large'
+        },
+        {
+          id: 'timeline',
+          type: 'timeseries',
+          title: 'Activity Timeline',
+          size: 'large'
+        },
+        {
+          id: 'users',
+          type: 'topUsers',
+          title: 'Top Users',
+          size: 'medium'
+        }
       ]
     },
     createdAt: new Date(),
     updatedAt: new Date(),
     userId: session.user.id,
-    isPublic: false
+    isPublic: false,
+    shareToken: null
   }
 
   return (
