@@ -1,18 +1,35 @@
 export const BRAND_IMAGES = {
-  evidation: "https://ploomber.io/images/brands/evidation.webp",
-  disney: "https://ploomber.io/images/brands/disney_hu1ecfde75b5023bb00d1865311038dddd_10356_469x0_resize_q90_h2_box_2.webp",
-  harvard: "https://ploomber.io/images/brands/harvard.webp",
-  paramount: "https://ploomber.io/images/brands/paramount.webp",
-  columbia: "https://ploomber.io/images/brands/columbiau_hu0f40f29fa5e3aa7c57ca8e6af3444a84_12438_250x0_resize_q90_h2_box_2.png"
+  evidation: "/images/evidation.png",
+  disney: "/images/disney.png",
+  harvard: "/images/harvard.png",
+  paramount: "/images/paramount.png",
+  columbia: "/images/columbia-university.png"
 }
 
 export const FRAMEWORK_LOGOS = {
-  panel: "https://ploomber.io/images/frameworks/panel.svg",
-  dash: "https://ploomber.io/images/frameworks/dash.svg",
-  streamlit: "https://ploomber.io/images/frameworks/streamlit.svg",
-  chainlit: "https://ploomber.io/images/frameworks/chainlit.svg",
-  fastapi: "https://ploomber.io/images/frameworks/fastapi.svg",
-  flask: "https://ploomber.io/images/frameworks/flask.svg"
+  panel: "/images/panel.png",
+  dash: "/images/dash.png",
+  streamlit: "/images/streamlit.png",
+  chainlit: "/images/chainlit.png",
+  fastapi: "/images/flask.png",
+  flask: "/images/flask.png"
+}
+
+export const FEATURE_IMAGES = {
+  auth: "/images/features-auth.png",
+  domain: "/images/features-domain.png",
+  analytics: "/images/features-analytic.png",
+  frameworks: "/images/features-frameworks.png"
+}
+
+export const TOOL_IMAGES = {
+  pycon: "/images/pycon.png",
+  odsc: "/images/odsc.png",
+  pydata: "/images/pydata.png",
+  scipy: "/images/scipy.png",
+  microsoft: "/images/microsoft.png",
+  columbiaStartup: "/images/columbia-startup-lab.png",
+  ycombinator: "/images/ycombinator.png"
 }
 
 export const FEATURES = [
@@ -35,9 +52,9 @@ export const FEATURES = [
 ]
 
 export const FEATURED_LOGOS = {
-  odsc: "https://ploomber.io/images/partners/odsc_hucbfe1cfe93cbe852b9dd9794cb8780d9_69112_2890x0_resize_q90_h2_box_2.webp",
-  scipy: "https://ploomber.io/images/partners/scipy_hu86b727cd89715d3b96723d56850df2f4_25946_672x0_resize_q90_h2_box_2.webp",
-  columbia: "https://ploomber.io/images/partners/columbia_hua44d393597038fc2c6237ac7ba95ca6b_7579_400x0_resize_q90_h2_box_2.webp"
+  odsc: "/images/odsc.png",
+  scipy: "/images/scipy.png",
+  columbia: "/images/columbia-startup-lab.png"
 }
 
 export const TESTIMONIALS = [
@@ -46,21 +63,21 @@ export const TESTIMONIALS = [
     author: "Filip Jankovic",
     role: "Data Science Manager",
     company: "Evidation",
-    image: "https://ploomber.io/images/user-img/filip_hufa47dcc08a42a29d2ccd1d763785a783_38032_98e976632d4bcf1c32fa97a22897484a.webp"
+    image: "/images/testimonials/filip.png"
   },
   {
     quote: "Ploomber enabled faster iterations.",
     author: "Rowan Molony",
     role: "Data Scientist",
     company: "Dublin's Energy Agency",
-    image: "https://ploomber.io/images/user-img/rowan_hud325df868ab5deaa5190db6998968cc9_24361_b7293f5eba205eee80fd59a76aa931ec.webp"
+    image: "/images/testimonials/rowan.png"
   },
   {
     quote: "The best tool I've tried. Maximum return, 0 BS.",
     author: "Matej Uhrín",
     role: "AI researcher",
     company: "CTU",
-    image: "https://ploomber.io/images/user-img/matej_hu894c88e012200e1ec3d2a2e3aea6c51a_24044_c8acadf463f26550a6467659e1ff4a8b.webp"
+    image: "/images/testimonials/matej.png"
   }
 ]
 

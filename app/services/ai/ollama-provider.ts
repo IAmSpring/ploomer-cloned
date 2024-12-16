@@ -11,14 +11,20 @@ export class OllamaProvider implements AIProvider {
 
   async initialize() {
     try {
-      await fetch(`${this.baseUrl}/api/pull`, {
+      const response = await fetch(`${this.baseUrl}/api/pull`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: this.model })
       })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to pull model: ${response.statusText}`)
+      }
+      
       this.isInitialized = true
     } catch (error) {
       console.error('Failed to initialize Ollama:', error)
+      // Don't throw - allow graceful degradation
     }
   }
 
@@ -26,6 +32,7 @@ export class OllamaProvider implements AIProvider {
     if (!this.isInitialized) return false
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`)
+      if (!response.ok) return false
       const data = await response.json()
       return data.models?.includes(this.model) || false
     } catch {
@@ -34,20 +41,36 @@ export class OllamaProvider implements AIProvider {
   }
 
   async chat(messages: AIMessage[]): Promise<AIMessage> {
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.model,
-        messages,
-        stream: false
-      })
-    })
+    try {
+      if (!this.isInitialized) {
+        throw new Error('Ollama not initialized')
+      }
 
-    const data = await response.json()
-    return {
-      role: 'assistant',
-      content: data.response
+      const response = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          stream: false
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Chat failed: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return {
+        role: 'assistant',
+        content: data.response
+      }
+    } catch (error) {
+      console.error('Ollama chat error:', error)
+      return {
+        role: 'assistant',
+        content: "I'm having trouble connecting to the AI service. Please try again later."
+      }
     }
   }
 
@@ -61,6 +84,7 @@ export class OllamaProvider implements AIProvider {
         })
       } catch (error) {
         console.error('Failed to cleanup Ollama:', error)
+        // Don't throw - allow graceful cleanup
       }
     }
   }

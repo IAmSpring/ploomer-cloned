@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/nav"
 import { Hero } from "@/app/components/hero"
 import { BrandsCarousel } from "@/app/components/brands-carousel"
 import { SecuritySection } from "@/app/components/security-section"
@@ -13,7 +12,6 @@ import Footer from "@/app/components/footer"
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
-      <Nav />
       <Hero />
       <BrandsCarousel />
       <SecuritySection />

@@ -7,14 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['ploomber.io'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'ploomber.io',
-        pathname: '/images/**',
-      },
-    ],
+    // No need for remotePatterns since we're using local images
   },
 }
 

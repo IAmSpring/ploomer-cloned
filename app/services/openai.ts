@@ -3,6 +3,7 @@ import { uiHelpers } from './ui-helpers'
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true
 })
 
 export interface Tool {
@@ -150,50 +151,71 @@ export const tools: Tool[] = [
 ]
 
 export async function chat(messages: any[], toolNames: string[] = []) {
-  const availableTools = toolNames.length 
-    ? tools.filter(tool => toolNames.includes(tool.name))
-    : tools
+  try {
+    const availableTools = toolNames.length 
+      ? tools.filter(tool => toolNames.includes(tool.name))
+      : tools
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
-    messages: [
-      {
-        role: "system",
-        content: `You are a helpful AI assistant that guides users through the platform setup process.
-        You can interact with the UI to help users navigate and complete tasks.
-        Available tools: ${JSON.stringify(availableTools.map(t => 
-          ({name: t.name, description: t.description, parameters: t.parameters})
-        ))}`
-      },
-      ...messages
-    ],
-    tools: availableTools.map(tool => ({
-      type: "function",
-      function: {
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.parameters
-      }
-    })),
-    tool_choice: "auto"
-  })
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful AI assistant that guides users through the platform setup process.
+          You can interact with the UI to help users navigate and complete tasks.
+          Available tools: ${JSON.stringify(availableTools.map(t => 
+            ({name: t.name, description: t.description, parameters: t.parameters})
+          ))}`
+        },
+        ...messages
+      ],
+      tools: availableTools.map(tool => ({
+        type: "function",
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters
+        }
+      })),
+      tool_choice: "auto"
+    })
 
-  return response
+    return response
+  } catch (error) {
+    console.error('OpenAI chat error:', error)
+    return {
+      choices: [{
+        message: {
+          content: "I'm having trouble connecting to the AI service. Please try again later.",
+          role: "assistant"
+        }
+      }]
+    }
+  }
 }
 
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-  const formData = new FormData()
-  formData.append('file', audioBlob, 'audio.webm')
-  formData.append('model', 'whisper-1')
+  try {
+    const formData = new FormData()
+    formData.append('file', audioBlob, 'audio.webm')
+    formData.append('model', 'whisper-1')
 
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-    },
-    body: formData
-  })
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      },
+      body: formData
+    })
 
-  const data = await response.json()
-  return data.text
+    if (!response.ok) {
+      throw new Error(`Transcription failed: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return data.text
+  } catch (error) {
+    console.error('Audio transcription error:', error)
+    return "Audio transcription failed. Please try typing your message instead."
+  }
 } 
