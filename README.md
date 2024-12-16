@@ -162,3 +162,163 @@ volumes:
 - Performance monitoring with Datadog
 - User analytics with PostHog
 - Custom event tracking
+
+## Environment Variables
+
+### Core Configuration
+```env
+# Base URLs and Security
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-development-secret-key"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Database Configuration
+DATABASE_URL="postgresql://postgres:password@postgres:5432/saas_platform?schema=public"
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=saas_platform
+
+# Redis Configuration
+REDIS_URL="redis://localhost:6379"
+```
+
+### Authentication & OAuth
+```env
+# Google OAuth
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=""
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=""
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=""
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=""
+NEXT_PUBLIC_FIREBASE_APP_ID=""
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=""
+```
+
+### Payment Processing
+```env
+# Stripe Configuration
+STRIPE_SECRET_KEY=""
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+```
+
+### Analytics & Monitoring
+```env
+# PostHog Analytics
+NEXT_PUBLIC_POSTHOG_API_KEY=your_posthog_api_key
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
+# Datadog Monitoring
+NEXT_PUBLIC_DATADOG_APPLICATION_ID=your_datadog_app_id
+NEXT_PUBLIC_DATADOG_CLIENT_TOKEN=your_datadog_token
+NEXT_PUBLIC_DATADOG_SITE=datadoghq.com
+
+# Sentry Error Tracking
+NEXT_PUBLIC_SENTRY_DSN=""
+```
+
+### AI Features
+```env
+# OpenAI Configuration
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+## AI Chat Assistant Setup
+
+The platform includes an AI-powered chat assistant that helps users navigate the platform and understand pricing options.
+
+### Features
+- Real-time UI interaction
+- Pricing plan guidance
+- Feature explanations
+- Interactive tutorials
+- Form filling assistance
+- Navigation help
+
+### AI Assistant Capabilities
+
+1. **Navigation**
+   - Guide users through different sections
+   - Highlight relevant UI elements
+   - Smooth scroll to important features
+
+2. **Plan Selection**
+   - Compare pricing plans
+   - Highlight plan features
+   - Explain plan differences
+   - Recommend suitable plans
+
+3. **Feature Discovery**
+   - Demonstrate platform features
+   - Interactive feature tours
+   - Contextual explanations
+
+4. **Form Assistance**
+   - Help with form filling
+   - Validate input
+   - Provide suggestions
+
+### Setting up OpenAI Integration
+
+1. Get your OpenAI API key:
+   ```bash
+   # Visit https://platform.openai.com/api-keys
+   # Create a new API key
+   # Add it to your .env file:
+   NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+2. The AI assistant uses GPT-4 with function calling capabilities. Ensure your OpenAI account has access to GPT-4.
+
+3. Available AI Tools:
+   ```typescript
+   - navigate: Navigate to specific pages
+   - select_plan: Help with plan selection
+   - show_feature: Highlight and explain features
+   - fill_form: Assist with form filling
+   - click_element: Help with button/link interactions
+   ```
+
+### Example AI Interactions
+
+```typescript
+// Ask about pricing
+"What plan would you recommend for a small team?"
+
+// Learn about features
+"Can you show me the AI features available?"
+
+// Get setup help
+"Help me set up my account"
+
+// Compare plans
+"What's the difference between Professional and Teams plans?"
+```
+
+### Customizing the AI Assistant
+
+The AI assistant can be customized by:
+1. Adding new tools in `services/openai.ts`
+2. Modifying the system prompt
+3. Adding new UI interactions in `services/ui-helpers.ts`
+4. Customizing the chat interface in `components/AIChat`
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+
+# Run development server
+npm run dev
+```
+
+For more detailed documentation on specific features, check the docs directory.
