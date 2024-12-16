@@ -19,32 +19,33 @@ export function Hero() {
   }, [textIndex])
 
   return (
-    <section className="banner">
-      <div className="container relative z-10">
-        <div className="text-center">
-          <h1 className="max-w-4xl mx-auto mb-8">
-            Deploy enterprise<br/>
-            <span id="changing-text" className="text-primary-600">
+    <section className="pt-32 pb-20">
+      <div className="container mx-auto px-4">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+            Deploy enterprise
+            <br />
+            <span id="changing-text" className="text-[#FFD666] transition-all">
               {currentText}
             </span>
           </h1>
-          <div className="flex justify-center gap-4">
-            <Link 
-              href="/auth/signin"
-              className="btn btn-primary"
-            >
-              Deploy your app now
-            </Link>
-          </div>
-          <div className="mt-12">
-            <p className="text-lg text-gray-600">
-              Backed by 
+          
+          <Link 
+            href="/auth/signin"
+            className="inline-block bg-[#FFD666] text-black px-8 py-4 rounded-md text-lg font-medium hover:bg-[#FFD666]/90 transition-colors"
+          >
+            Deploy your app now
+          </Link>
+
+          <div className="mt-16">
+            <p className="text-lg text-gray-600 flex items-center justify-center gap-3">
+              Backed by
               <Image
-                src="/images/ycombinator.png"
-                alt="YCombinator"
-                width={100}
+                src="/images/ycombinator.svg"
+                alt="Y Combinator"
+                width={120}
                 height={30}
-                className="inline-block ml-2"
+                className="inline-block"
               />
             </p>
           </div>
