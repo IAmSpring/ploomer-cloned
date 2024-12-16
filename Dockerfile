@@ -3,13 +3,17 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install necessary tools
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    netcat-openbsd
 
 # Copy package files
 COPY package*.json ./
 RUN npm install
 
-# Copy prisma schema and migrations
+# Copy prisma files first to optimize layer caching
 COPY prisma ./prisma/
 
 # Copy the rest of the application
@@ -20,9 +24,6 @@ RUN npx prisma generate
 
 # Build the application
 RUN npm run build
-
-# Add seed data script
-COPY scripts/seed-data.ts ./prisma/seed.ts
 
 # Setup entrypoint script
 COPY scripts/docker-entrypoint.sh /usr/local/bin/

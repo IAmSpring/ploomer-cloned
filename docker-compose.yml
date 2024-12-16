@@ -44,7 +44,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
       - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=your-random-secret-key
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-default-development-secret}
     volumes:
       - .:/app
       - /app/node_modules

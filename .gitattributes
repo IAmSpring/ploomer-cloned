@@ -1,0 +1,5 @@
+# Force line endings to be LF for Docker files
+*.sh text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+docker-compose.yml text eol=lf 
