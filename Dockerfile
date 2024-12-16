@@ -11,7 +11,9 @@ RUN apk add --no-cache \
 
 # Copy package files
 COPY package*.json ./
-RUN npm install
+
+# Install dependencies with clean slate
+RUN npm ci
 
 # Copy prisma files first to optimize layer caching
 COPY prisma ./prisma/
