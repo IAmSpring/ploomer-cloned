@@ -10,6 +10,9 @@ import Navbar from './components/navbar'
 import Footer from "@/app/components/footer"
 import { initDatadog } from '@/lib/datadog'
 import TextAnimation from './components/TextAnimation'
+import { AIChatProvider } from './contexts/AIChatContext'
+import { MinimizedChat } from './components/AIChat/MinimizedChat'
+import AIChat from './components/AIChat'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,13 +42,17 @@ export default function RootLayout({
         <TextAnimation />
         <Providers>
           <NotificationProvider>
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <AIChatProvider>
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-grow">
+                  {children}
+                </main>
+                <Footer />
+                <MinimizedChat />
+                <AIChat />
+              </div>
+            </AIChatProvider>
           </NotificationProvider>
         </Providers>
       </body>

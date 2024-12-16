@@ -97,4 +97,93 @@
   .highlight-overlay.active {
     opacity: 0.2;
   }
+
+  .message-bubble {
+    @apply max-w-[80%] rounded-lg p-3;
+  }
+
+  .message-bubble.audio {
+    @apply border-l-4 border-[#FFD666];
+  }
+
+  .recording-pulse {
+    @apply relative;
+  }
+
+  .recording-pulse::before {
+    content: '';
+    @apply absolute inset-0 animate-pulse bg-red-500 opacity-10 rounded-lg;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .recording-indicator {
+    @apply flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm;
+    background: linear-gradient(
+      to right,
+      rgba(239, 68, 68, 0.7),
+      rgba(220, 38, 38, 0.7)
+    );
+    box-shadow: 
+      0 0 15px rgba(239, 68, 68, 0.2),
+      inset 0 0 8px rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 0.05;
+    }
+  }
+
+  .wave-container {
+    @apply relative overflow-hidden rounded-lg bg-black/5 backdrop-blur-sm;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.02) 0%,
+      rgba(0, 0, 0, 0.05) 100%
+    );
+  }
+
+  .wave {
+    @apply absolute inset-0;
+    background: radial-gradient(
+      circle at center, 
+      rgba(239, 68, 68, 0.1) 0%, 
+      transparent 70%
+    );
+    animation: wave 3s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateY(-5%) scale(1.02);
+      opacity: 0.2;
+    }
+  }
+
+  .message-bubble.audio {
+    @apply relative pl-10 border-l-4 border-[#FFD666];
+  }
+
+  .message-bubble.audio::before {
+    content: '';
+    @apply absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#FFD666] rounded-full opacity-20;
+  }
+
+  .message-bubble.audio::after {
+    content: '🎤';
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-xs;
+  }
+
+  /* Add smooth transition for visualizer bars */
+  .visualizer-bar {
+    transition: transform 100ms ease-out, opacity 100ms ease-out;
+    will-change: transform, opacity;
+  }
 } 
