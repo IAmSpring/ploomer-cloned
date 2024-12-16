@@ -6,6 +6,16 @@ const withSentryConfig = process.env.NODE_ENV === 'production'
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  images: {
+    domains: ['ploomber.io'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ploomber.io',
+        pathname: '/images/**',
+      },
+    ],
+  },
 }
 
 module.exports = process.env.NODE_ENV === 'production'

@@ -7,7 +7,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import Navbar from './components/navbar'
-import Footer from './components/footer'
+import Footer from "@/app/components/footer"
 import { initDatadog } from '@/lib/datadog'
 import TextAnimation from './components/TextAnimation'
 
