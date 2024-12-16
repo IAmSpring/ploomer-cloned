@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import 'swiper/css'
@@ -13,6 +13,7 @@ import TextAnimation from './components/TextAnimation'
 import { AIChatProvider } from './contexts/AIChatContext'
 import { MinimizedChat } from './components/AIChat/MinimizedChat'
 import AIChat from './components/AIChat'
+import { analyticsTracker } from '@/app/services/analytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -30,6 +31,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  useEffect(() => {
+    analyticsTracker.startTracking()
+    return () => analyticsTracker.stopTracking()
+  }, [])
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

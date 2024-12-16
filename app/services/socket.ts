@@ -56,6 +56,12 @@ class SocketService {
       this.socket.emit('message', payload)
     }
   }
+
+  emit(event: string, data: any) {
+    if (this.socket) {
+      this.socket.emit(event, data)
+    }
+  }
 }
 
 export const socketService = new SocketService() 
