@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { CheckIcon } from '@heroicons/react/24/solid'
+import dynamic from 'next/dynamic'
 
 interface PricingFeature {
   name: string
@@ -116,38 +116,85 @@ const pricingTiers = [
     name: "Teams",
     price: "$200",
     period: "per month",
-    name: "Enterprise",
-    price: "Custom",
-    description: "For large organizations",
+    description: "For growing teams that need more",
     features: [
-      "Unlimited everything",
-      "Custom AI models",
-      "24/7 dedicated support",
-      "Unlimited storage",
-      "Fastest response time",
-      "Custom development",
-      "SLA guarantee",
-      "On-premise deployment"
+      "20 apps",
+      "Auth0 integration",
+      "5 custom domains",
+      "500 AI generations/day",
+      "Static IPs",
+      "IP whitelisting",
+      "Application analytics",
+      "Private Slack channel",
+      "Support SLA"
     ],
     buttonText: "Contact Sales",
     buttonLink: "/contact"
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    description: "Custom solutions for large organizations",
+    features: [
+      "Unlimited apps",
+      "Custom compute resources",
+      "SSO/LDAP/SAML auth",
+      "VPC or on-premise deployment",
+      "Custom domain limit",
+      "Phone support",
+      "Custom AI limits",
+      "Dedicated support team"
+    ],
+    buttonText: "Contact Sales",
+    buttonLink: "/contact/enterprise"
   }
 ]
 
+// Dynamically import AIChat with no SSR since it uses browser APIs
+const AIChat = dynamic(
+  () => import('@/app/components/AIChat'),
+  { ssr: false }
+)
+
 export default function PricingPage() {
+  const [view, setView] = useState<'cards' | 'comparison'>('cards')
   const [isAnnual, setIsAnnual] = useState(true)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="py-24 px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
+        <h1 className="text-4xl font-bold mb-4">Pricing Plans</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Choose the perfect plan for your needs. All plans include our core AI features.
+          Choose the perfect plan for your needs. All plans include core features and WASM support.
         </p>
         
+        {/* View Toggle */}
+        <div className="mt-8 flex justify-center gap-4">
+          <button
+            onClick={() => setView('cards')}
+            className={`px-4 py-2 rounded-lg ${
+              view === 'cards' 
+                ? 'bg-[#FFD666] text-black' 
+                : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            Simple View
+          </button>
+          <button
+            onClick={() => setView('comparison')}
+            className={`px-4 py-2 rounded-lg ${
+              view === 'comparison' 
+                ? 'bg-[#FFD666] text-black' 
+                : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            Compare Features
+          </button>
+        </div>
+
         {/* Billing Toggle */}
-        <div className="mt-12 flex items-center justify-center gap-4">
+        <div className="mt-8 flex items-center justify-center gap-4">
           <span className={`text-sm ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
             Monthly
           </span>
@@ -168,107 +215,56 @@ export default function PricingPage() {
         </div>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="max-w-7xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {pricingTiers.map((tier, index) => (
-            <motion.div
-              key={tier.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`rounded-lg shadow-lg overflow-hidden ${
-                tier.highlighted 
-                  ? 'ring-2 ring-[#FFD666] scale-105 bg-white' 
-                  : 'bg-white'
-              }`}
-            >
-              <div className="p-8">
-                <h3 className="text-xl font-semibold mb-2">{tier.name}</h3>
-                <div className="flex items-baseline mb-4">
-                  <span className="text-4xl font-bold">{tier.price}</span>
-                  {tier.price !== "Custom" && (
-                    <span className="text-gray-500 ml-2">
-                      /{isAnnual ? 'year' : 'month'}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-500 mb-6">{tier.description}</p>
-                
-                <a
-                  href={tier.buttonLink}
-                  className={`block text-center py-3 px-6 rounded-lg font-medium transition-colors ${
-                    tier.highlighted
-                      ? 'bg-[#FFD666] hover:bg-[#FFC933] text-black'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  }`}
-                >
-                  {tier.buttonText}
-                </a>
-              </div>
-              
-              <div className="px-8 pb-8">
-                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-                  Features
-                </h4>
-                <ul className="space-y-4">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start">
-                      <svg
-                        className="h-6 w-6 text-green-500 flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="ml-3 text-gray-600">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          ))}
+      {view === 'cards' ? (
+        // Pricing Cards View
+        <div className="max-w-7xl mx-auto px-4 pb-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {pricingTiers.map((tier, index) => (
+              <motion.div
+                key={tier.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`rounded-lg shadow-lg overflow-hidden ${
+                  tier.highlighted 
+                    ? 'ring-2 ring-[#FFD666] scale-105 bg-white' 
+                    : 'bg-white'
+                }`}
+              >
+                {/* Card content */}
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        // Comparison Table View
+        <div className="max-w-7xl mx-auto px-4 pb-24 overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-4 px-6">Feature</th>
+                {['Community', 'Professional', 'Teams', 'Enterprise'].map(plan => (
+                  <th key={plan} className="text-left py-4 px-6">{plan}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pricingFeatures.map((feature, index) => (
+                <tr key={feature.name} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
+                  <td className="py-4 px-6 font-medium">{feature.name}</td>
+                  <td className="py-4 px-6">{feature.community}</td>
+                  <td className="py-4 px-6">{feature.professional}</td>
+                  <td className="py-4 px-6">{feature.teams}</td>
+                  <td className="py-4 px-6">{feature.enterprise}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* FAQ Section */}
-      <div className="max-w-4xl mx-auto px-4 pb-24">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          Frequently Asked Questions
-        </h2>
-        <div className="space-y-8">
-          <div>
-            <h3 className="text-xl font-semibold mb-2">
-              Can I switch plans later?
-            </h3>
-            <p className="text-gray-600">
-              Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-2">
-              What payment methods do you accept?
-            </h3>
-            <p className="text-gray-600">
-              We accept all major credit cards, PayPal, and wire transfers for Enterprise plans.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-2">
-              Do you offer refunds?
-            </h3>
-            <p className="text-gray-600">
-              Yes, we offer a 30-day money-back guarantee for all paid plans.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Add AI Chat component */}
+      <AIChat />
     </div>
   )
 } 
