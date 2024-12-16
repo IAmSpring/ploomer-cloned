@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import 'swiper/css'
@@ -6,6 +6,7 @@ import 'swiper/css/autoplay'
 import './globals.css'
 import { Providers } from './providers'
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import { AnalyticsProvider } from './components/AnalyticsProvider'
 import Navbar from './components/navbar'
 import Footer from "@/app/components/footer"
 import { initDatadog } from '@/lib/datadog'
@@ -13,7 +14,6 @@ import TextAnimation from './components/TextAnimation'
 import { AIChatProvider } from './contexts/AIChatContext'
 import { MinimizedChat } from './components/AIChat/MinimizedChat'
 import AIChat from './components/AIChat'
-import { analyticsTracker } from '@/app/services/analytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,11 +31,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  useEffect(() => {
-    analyticsTracker.startTracking()
-    return () => analyticsTracker.stopTracking()
-  }, [])
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -49,15 +44,17 @@ export default function RootLayout({
         <Providers>
           <NotificationProvider>
             <AIChatProvider>
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-grow">
-                  {children}
-                </main>
-                <Footer />
-                <MinimizedChat />
-                <AIChat />
-              </div>
+              <AnalyticsProvider>
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="flex-grow">
+                    {children}
+                  </main>
+                  <Footer />
+                  <MinimizedChat />
+                  <AIChat />
+                </div>
+              </AnalyticsProvider>
             </AIChatProvider>
           </NotificationProvider>
         </Providers>

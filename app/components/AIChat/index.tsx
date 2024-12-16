@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { chat, Tool, tools } from '@/app/services/openai'
-import { MicrophoneIcon, StopIcon, SpeakerWaveIcon } from '@heroicons/react/24/solid'
-import { VolumeVisualizer } from './VolumeVisualizer'
+import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid'
 import { useAIChat } from '@/app/contexts/AIChatContext'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { DEMO_STEPS, DEMO_RESPONSES } from '@/app/constants/demo-steps'
 import { DemoStep, DemoResponses } from '@/app/types/demo'
 import { socketService } from '@/app/services/socket'
+import { aiService } from '@/app/services/ai'
 
 interface Message {
   role: 'user' | 'assistant' | 'system'
@@ -19,59 +19,19 @@ interface Message {
   isAudio?: boolean
 }
 
-interface AudioVisualizerProps {
-  isRecording: boolean
-}
-
-const AudioVisualizer = ({ isRecording }: AudioVisualizerProps) => {
-  const bars = 5
-  const controls = useAnimation()
-
-  useEffect(() => {
-    if (isRecording) {
-      controls.start(i => ({
-        scaleY: [1, 2, 1],
-        transition: {
-          duration: 0.5,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: i * 0.1
-        }
-      }))
-    } else {
-      controls.stop()
-      controls.set({ scaleY: 1 })
-    }
-  }, [isRecording, controls])
-
-  return (
-    <div className="flex items-center gap-0.5 h-5">
-      {Array.from({ length: bars }).map((_, i) => (
-        <motion.div
-          key={i}
-          custom={i}
-          animate={controls}
-          className="w-1 h-full bg-red-500 origin-bottom"
-          style={{ opacity: 0.7 + (i * 0.1) }}
-        />
-      ))}
-    </div>
-  )
-}
-
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<null | HTMLDivElement>(null)
   const [isRecording, setIsRecording] = useState(false)
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [isWhisperReady, setIsWhisperReady] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null)
+  const recordingTimeoutRef = useRef<NodeJS.Timeout>()
   const { isOpen, setIsOpen, isDemoMode, stopDemo, demoProgress } = useAIChat()
   const router = useRouter()
   const { data: session } = useSession()
+  const [voiceError, setVoiceError] = useState<string | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -143,62 +103,55 @@ export default function AIChat() {
     }
   }, [])
 
+  useEffect(() => {
+    aiService.initialize()
+    return () => {
+      aiService.cleanup()
+    }
+  }, [])
+
+  useEffect(() => {
+    const checkWhisper = async () => {
+      try {
+        const response = await fetch('https://api.openai.com/v1/models/whisper-1', {
+          headers: {
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+          }
+        })
+        setIsWhisperReady(response.ok)
+        if (!response.ok) {
+          setVoiceError('Voice input is currently unavailable')
+        }
+      } catch {
+        setIsWhisperReady(false)
+        setVoiceError('Voice input is currently unavailable')
+      }
+    }
+    checkWhisper()
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
 
     const userMessage = {
       role: 'user' as const,
-      content: input,
-      timestamp: Date.now()
+      content: input
     }
 
-    socketService.sendMessage(input)
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
 
     try {
-      const response = await chat(messages)
-      
-      if (response.choices[0].message.tool_calls) {
-        const toolCalls = response.choices[0].message.tool_calls
-        for (const toolCall of toolCalls) {
-          const tool = tools.find(t => t.name === toolCall.function.name)
-          if (tool) {
-            try {
-              const args = JSON.parse(toolCall.function.arguments)
-              const result = await tool.execute(args)
-              const toolMessage: Message = {
-                role: 'system',
-                content: `${result}`
-              }
-              setMessages(prev => [...prev, toolMessage])
-            } catch (error) {
-              console.error('Tool execution error:', error)
-              const errorMessage: Message = {
-                role: 'system',
-                content: 'Sorry, there was an error executing that action.'
-              }
-              setMessages(prev => [...prev, errorMessage])
-            }
-          }
-        }
-      }
-
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: response.choices[0].message.content || ''
-      }
-      setMessages(prev => [...prev, assistantMessage])
-
+      const response = await aiService.chat([...messages, userMessage])
+      setMessages(prev => [...prev, response])
     } catch (error) {
-      console.error('Error:', error)
-      const errorMessage: Message = {
+      console.error('Chat error:', error)
+      setMessages(prev => [...prev, {
         role: 'system',
         content: 'Sorry, there was an error processing your request.'
-      }
-      setMessages(prev => [...prev, errorMessage])
+      }])
     }
 
     setIsLoading(false)
@@ -206,38 +159,42 @@ export default function AIChat() {
 
   const startRecording = async () => {
     try {
+      setVoiceError(null)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      setAudioStream(stream)
       const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = mediaRecorder
-      chunksRef.current = []
+      const chunks: Blob[] = []
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data)
-        }
+        if (e.data.size > 0) chunks.push(e.data)
       }
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        setAudioBlob(audioBlob)
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' })
         await handleAudioTranscription(audioBlob)
+        stream.getTracks().forEach(track => track.stop())
       }
 
+      mediaRecorderRef.current = mediaRecorder
       mediaRecorder.start()
       setIsRecording(true)
+
+      recordingTimeoutRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+          stopRecording()
+        }
+      }, 5000)
     } catch (error) {
       console.error('Error accessing microphone:', error)
+      setVoiceError('Unable to access microphone. Please check your permissions.')
     }
   }
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current?.state === 'recording') {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
-      if (audioStream) {
-        audioStream.getTracks().forEach(track => track.stop())
-        setAudioStream(null)
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current)
       }
     }
   }
@@ -288,7 +245,6 @@ export default function AIChat() {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      setAudioBlob(null)
     }
   }
 
@@ -335,79 +291,53 @@ export default function AIChat() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-4 border-t">
-        <div className="flex gap-2">
-          {isRecording && (
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-              <div className="recording-indicator">
-                <div className="relative">
-                  <div className="wave-container px-2 py-1">
-                    <VolumeVisualizer 
-                      isRecording={isRecording} 
-                      stream={audioStream}
-                    />
-                    <div className="wave opacity-30" />
-                  </div>
-                </div>
-                <span className="ml-2 text-white/90">Recording...</span>
-              </div>
+        <div className="flex flex-col gap-2">
+          {voiceError && (
+            <div className="text-sm text-red-500 px-2">
+              {voiceError}
             </div>
           )}
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={isRecording ? "Recording..." : "Ask me anything..."}
-            className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD666] transition-all ${
-              isRecording ? 'bg-gray-50' : ''
-            }`}
-            disabled={isLoading || isRecording}
-          />
-          <button
-            type="button"
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`p-2 rounded-lg transition-all ${
-              isRecording 
-                ? 'bg-red-500 hover:bg-red-600 text-white recording-pulse'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-            disabled={isLoading}
-          >
-            <div className="relative">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask me anything..."
+              className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD666]"
+              disabled={isLoading || isRecording}
+            />
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isLoading || !isWhisperReady}
+              className={`p-2 rounded-lg transition-colors group relative ${
+                isRecording 
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : isWhisperReady
+                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+              title={!isWhisperReady ? 'Voice input unavailable' : 'Record voice message'}
+            >
               {isRecording ? (
                 <StopIcon className="h-5 w-5" />
               ) : (
                 <MicrophoneIcon className="h-5 w-5" />
               )}
-              {isRecording && (
-                <motion.div
-                  className="absolute inset-0 rounded-lg bg-red-500"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.2, 0.1, 0.2],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                  }}
-                />
+              {!isWhisperReady && !voiceError && (
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Voice input unavailable
+                </span>
               )}
-            </div>
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading || isRecording}
-            className="px-4 py-2 bg-[#FFD666] text-black rounded-lg hover:bg-[#FFC933] disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
-              />
-            ) : (
-              'Send'
-            )}
-          </button>
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || isRecording}
+              className="px-4 py-2 bg-[#FFD666] text-black rounded-lg hover:bg-[#FFC933] disabled:opacity-50"
+            >
+              {isLoading ? '...' : 'Send'}
+            </button>
+          </div>
         </div>
       </form>
     </motion.div>

@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
@@ -52,6 +53,23 @@ services:
       redis:
         condition: service_healthy
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
 volumes:
   postgres_data:
   redis_data:
+  ollama_data:
+    driver: local

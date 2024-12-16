@@ -10,7 +10,7 @@
     "clean": "rm -rf .next",
     "docker:dev": "docker-compose up",
     "docker:build": "docker-compose build",
-    "docker:down": "docker-compose down",
+    "docker:down": "bash scripts/cleanup.sh",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
     "dev:setup": "./scripts/setup.sh",
