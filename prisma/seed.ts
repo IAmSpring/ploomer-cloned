@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
+import { randomUUID } from 'crypto'
+
+const seedClient = new PrismaClient()
 
 async function main() {
   // Create demo user
-  const demoUser = await prisma.user.upsert({
+  const demoUser = await seedClient.user.upsert({
     where: { email: 'demo@example.com' },
     update: {},
     create: {
@@ -24,7 +26,7 @@ async function main() {
   // Create sample analytics data
   const activities = await Promise.all(
     Array.from({ length: 100 }).map((_, i) => {
-      return prisma.activity.create({
+      return seedClient.activity.create({
         data: {
           type: ['pageview', 'click', 'signup', 'purchase'][Math.floor(Math.random() * 4)],
           description: `Sample activity ${i}`,
@@ -37,7 +39,7 @@ async function main() {
 
   // Create sample reports
   const reports = await Promise.all([
-    prisma.report.create({
+    seedClient.report.create({
       data: {
         name: 'Monthly Overview',
         description: 'Key metrics for the last 30 days',
@@ -51,13 +53,13 @@ async function main() {
         layout: {
           components: [
             {
-              id: 'overview',
+              id: randomUUID(),
               type: 'metrics',
               title: 'Overview Metrics',
               size: 'large'
             },
             {
-              id: 'timeline',
+              id: randomUUID(),
               type: 'timeseries',
               title: 'Activity Timeline',
               size: 'large'
@@ -83,5 +85,5 @@ main()
     process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect()
+    await seedClient.$disconnect()
   }) 

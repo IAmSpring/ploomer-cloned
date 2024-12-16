@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { CreditCard, Users, Activity, TrendingUp } from 'lucide-react'
-import type { Subscription } from '@prisma/client'
+import type { Subscription } from '@/types/prisma'
 
 interface StatsCardProps {
   title: string

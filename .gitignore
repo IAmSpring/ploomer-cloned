@@ -71,3 +71,6 @@ logs
 
 # System Files
 Thumbs.db
+
+# Prisma
+prisma/.env

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { prisma } from '@/lib/prisma'
-import type { Report } from '@/types/analytics'
+import type { Report } from '@/types/prisma'
 
 export async function POST(request: Request) {
   const session = await getServerSession()
@@ -64,11 +64,12 @@ export async function GET() {
       }
     })
 
-    const convertedReports: Report[] = reports.map(report => ({
-      ...report,
+    const convertedReports: Report[] = reports.map((report: Report) => ({
+      id: report.id,
+      name: report.name,
+      description: report.description,
       filters: report.filters as Report['filters'],
       layout: report.layout as Report['layout'],
-      description: report.description || null,
       shareToken: report.shareToken || null
     }))
 

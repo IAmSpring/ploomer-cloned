@@ -1,29 +1,34 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { SessionProvider } from 'next-auth/react'
-import { initDatadog } from '@/lib/datadog'
-import { initPostHog } from '@/lib/posthog'
-import { useSession } from 'next-auth/react'
-import { trackUser } from '@/lib/analytics/datadog'
+import { SessionProvider } from "next-auth/react"
+import { useEffect } from "react"
+import { datadogRum } from "@datadog/browser-rum"
+import { initDatadog } from "@/lib/datadog"
+import { useSession } from "next-auth/react"
 
-export function Providers({ children }: { children: React.ReactNode }) {
+function DatadogProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
 
   useEffect(() => {
+    initDatadog()
     if (session?.user) {
-      trackUser({
+      datadogRum.setUser({
         id: session.user.id,
-        email: session.user.email,
-        name: session.user.name || undefined
+        email: session.user.email || undefined,
+        name: session.user.name || undefined,
       })
     }
   }, [session])
 
-  useEffect(() => {
-    initDatadog()
-    initPostHog()
-  }, [])
+  return <>{children}</>
+}
 
-  return <SessionProvider>{children}</SessionProvider>
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      <DatadogProvider>
+        {children}
+      </DatadogProvider>
+    </SessionProvider>
+  )
 } 

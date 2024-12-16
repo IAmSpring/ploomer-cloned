@@ -7,7 +7,71 @@
   --background-rgb: 255, 255, 255;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+@layer base {
+  body {
+    @apply text-gray-900 bg-white;
+  }
+
+  h1 {
+    @apply text-4xl font-bold md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl font-bold md:text-3xl;
+  }
+}
+
+@layer components {
+  .container {
+    @apply px-4 mx-auto max-w-7xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium text-center transition-all rounded-md;
+  }
+
+  .btn-primary {
+    @apply text-white bg-primary-600 hover:bg-primary-700;
+  }
+
+  .banner {
+    @apply relative py-20 overflow-hidden bg-gradient-to-b from-gray-50 to-white;
+  }
+
+  .banner::before {
+    content: '';
+    @apply absolute inset-0 z-0 bg-gradient-to-b from-gray-50 to-transparent;
+  }
+
+  #changing-text {
+    @apply relative z-10 transition-opacity duration-500;
+  }
+
+  .feature-card {
+    @apply p-6 transition-all bg-white rounded-lg shadow-sm hover:shadow-md;
+  }
+
+  /* Auth pages */
+  .auth-input {
+    @apply appearance-none rounded-md relative block w-full px-3 py-2 border 
+           border-gray-300 placeholder-gray-500 text-gray-900 
+           focus:outline-none focus:ring-indigo-500 focus:border-indigo-500;
+  }
+
+  .social-button {
+    @apply w-full flex items-center justify-center gap-3 px-4 py-2 
+           border border-gray-300 rounded-md transition-colors;
+  }
+
+  .social-button:not(:disabled) {
+    @apply text-gray-700 hover:bg-gray-50;
+  }
+
+  .social-button:disabled {
+    @apply text-gray-400 bg-gray-50 cursor-not-allowed;
+  }
 } 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { prisma } from '@/lib/prisma'
 import type { AnalyticsData } from '@/types/analytics'
+import type { User } from '@/types/prisma'
 
 interface MetricCount {
   type: string
@@ -66,9 +67,10 @@ export async function GET() {
       })
     ])
 
-    const topUsers = users.map(user => ({
-      name: user.name || '',
-      email: user.email || '',
+    const topUsers = users.map((user: User) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
       activityCount: user._count.activities,
       group: user.subscription?.status || 'free'
     }))

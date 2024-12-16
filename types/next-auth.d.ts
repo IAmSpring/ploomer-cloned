@@ -1,5 +1,4 @@
-import 'next-auth'
-import { DefaultSession } from 'next-auth'
+import { DefaultSession, DefaultUser } from 'next-auth'
 
 declare module 'next-auth' {
   interface Session {
@@ -8,7 +7,11 @@ declare module 'next-auth' {
     } & DefaultSession['user']
   }
 
-  interface User {
+  interface User extends DefaultUser {
     id: string
+    subscription?: {
+      status: string
+      currentPeriodEnd?: Date
+    }
   }
 } 
