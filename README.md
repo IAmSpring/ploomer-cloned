@@ -22,57 +22,7 @@ A modern, full-stack SaaS analytics platform built with Next.js 14, featuring re
 - **Monitoring**: Sentry
 - **Payments**: Stripe
 
-## 🛠 Development Setup
-
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+
-- npm or yarn
-
-### Quick Start
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/saas-platform.git
-cd saas-platform
-```
-
-2. Copy environment variables:
-```bash
-cp .env.example .env
-```
-
-3. Start the development environment:
-```bash
-npm run dev:setup
-```
-
-This command will:
-- Build and start all Docker containers
-- Set up PostgreSQL database
-- Configure Redis for caching
-- Start the Next.js development server
-- Generate Prisma client
-
-### Available Scripts
-```bash
-# Development
-npm run dev           # Start Next.js development server
-npm run docker:dev    # Start Docker development environment
-npm run docker:build  # Build Docker containers
-npm run docker:down   # Stop Docker containers
-
-# Database
-npm run prisma:migrate  # Run database migrations
-npm run prisma:generate # Generate Prisma client
-
-# Production
-npm run build    # Build the application
-npm run start    # Start production server
-npm run clean    # Clean build files
-```
-
 ## 🏗 Project Structure
-
 ```
 ├── app/                    # Next.js 14 app directory
 │   ├── api/               # API routes
@@ -87,38 +37,106 @@ npm run clean    # Clean build files
 └── types/           # TypeScript type definitions
 ```
 
-## 🔄 Development Workflow
+## 🚀 Quick Start
 
-### Docker Services
-- **PostgreSQL**: Main database (port 5432)
-- **Redis**: Caching and real-time features (port 6379)
-- **Next.js**: Application server (port 3000)
+### Prerequisites
+- Docker and Docker Compose
+- Node.js 18+
+- npm or yarn
 
-### Environment Variables
-Key environment variables needed:
-```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/saas_platform
-REDIS_URL=redis://localhost:6379
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-random-secret-key
+### One-Command Setup
+```bash
+# Clone the repository
+git clone https://github.com/IAmSpring/ploomer-cloned.git
+cd ploomer-cloned
+
+# Run the automated setup
+npm run dev:setup
 ```
 
-### Real-time Features
-The platform uses Socket.IO for real-time updates:
-- Analytics dashboard updates
-- User activity tracking
-- Team collaboration features
+This single command will:
+1. 🔧 Set up all environment variables
+2. 🐳 Start Docker containers (PostgreSQL, Redis, Next.js)
+3. 📦 Run database migrations
+4. 🌱 Seed the database with sample data
+5. 🚀 Start the development server
 
-### Database Management
+### Demo Credentials
+```
+Email: demo@example.com
+Password: demo123
+```
+
+### Sample Data Included
+- 📊 Pre-configured analytics dashboard
+- 📈 100 sample analytics events
+- 📑 Example reports and layouts
+- 👤 Demo user with Pro subscription
+
+## 🛠 Development Environment
+
+### Docker Services
+```yaml
+services:
+  # PostgreSQL Database (port 5432)
+  postgres:
+    - Persistent data storage
+    - Sample data auto-seeding
+    - Automatic migrations
+
+  # Redis Cache (port 6379)
+    - Real-time analytics
+    - Socket.IO adapter
+    - Performance caching
+
+  # Next.js Application (port 3000)
+    - Hot-reload development
+    - API routes
+    - SSR/Static Generation
+```
+
+### Development Scripts
 ```bash
-# Create a new migration
-npx prisma migrate dev --name migration_name
+# Development
+npm run dev:setup     # Full environment setup
+npm run docker:dev    # Start Docker services
+npm run docker:down   # Stop all services
 
-# Reset database (development only)
-npx prisma db push --force-reset
+# Database
+npm run prisma:migrate  # Run migrations
+npm run prisma:generate # Update Prisma client
+npm run prisma:seed     # Seed sample data
+```
 
-# View database with Prisma Studio
-npx prisma studio
+## 🔄 Development Workflow
+
+### 1. Local Development
+```bash
+# Start everything
+npm run dev:setup
+
+# View the dashboard
+open http://localhost:3000/dashboard
+```
+
+### 2. Working with Data
+- Sample analytics events are automatically created
+- Real-time updates via Socket.IO
+- Redis caching for performance
+- PostgreSQL for persistent storage
+
+### 3. Environment Variables
+All necessary environment variables are automatically configured, including:
+- Database connections
+- Redis settings
+- NextAuth configuration
+- API keys (development ones for third-party services)
+
+### 4. Docker Volumes
+```yaml
+volumes:
+  postgres_data: # Persistent database storage
+  redis_data:    # Persistent cache storage
 ```
 
 ## 📚 Documentation
