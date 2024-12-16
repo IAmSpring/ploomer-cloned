@@ -62,6 +62,7 @@ next-env.d.ts
 + **/next-swc.*
 
 # Docker
+.docker
 docker-compose.override.yml
 
 # Logs
