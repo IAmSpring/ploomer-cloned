@@ -82,24 +82,26 @@ That's it! The setup script will automatically:
 ## 🛠 Development Environment
 
 ### Docker Services
-```yaml
-services:
-  # PostgreSQL Database (port 5432)
-  postgres:
-    - Persistent data storage
-    - Sample data auto-seeding
-    - Automatic migrations
+- **PostgreSQL Database (port 5432)**
+  - Persistent data storage
+  - Sample data auto-seeding
+  - Automatic migrations
 
-  # Redis Cache (port 6379)
-    - Real-time analytics
-    - Socket.IO adapter
-    - Performance caching
+- **Redis Cache (port 6379)**
+  - Real-time analytics
+  - Socket.IO adapter
+  - Performance caching
 
-  # Next.js Application (port 3000)
-    - Hot-reload development
-    - API routes
-    - SSR/Static Generation
-```
+- **Next.js Application (port 3000)**
+  - Hot-reload development
+  - API routes
+  - SSR/Static Generation
+
+- **Task Manager**
+  - Handles task scheduling and execution
+
+- **Build Classifier**
+  - Classifies and processes different build types
 
 ### Development Commands
 ```bash
