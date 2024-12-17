@@ -15,10 +15,10 @@ export default function Footer() {
               <ImageWithFallback
                 src="/images/logo.png"
                 alt="Ploomber Logo"
-                width={32}
-                height={32}
+                width={120}
+                height={40}
+                className="h-8 w-auto"
               />
-              <span className="font-semibold">Ploomber</span>
             </Link>
             <div className="flex gap-4">
               {FOOTER_LINKS.social.map((link) => (

@@ -13,11 +13,10 @@ export function Nav() {
             <Image
               src="/images/logo.png"
               alt="Ploomber Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10"
+              width={260}
+              height={90}
+              className="h-8 w-auto"
             />
-            <span className="text-xl font-semibold">Ploomber</span>
           </Link>
         </div>
         

@@ -11,17 +11,17 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-[70px] flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center">
           <Image
-            src="/images/ploomber-mascot.png"
+            src="/images/logo.png"
             alt="Ploomber"
-            width={48}
-            height={48}
-            className="w-12 h-12"
+            width={160}
+            height={50}
+            className="h-10 w-auto"
+            priority
           />
-          <span className="text-2xl font-bold">Ploomber</span>
         </Link>
 
         {/* Navigation Links */}

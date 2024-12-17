@@ -35,9 +35,9 @@ export default function SignIn() {
               <Image
                 src="/images/logo.png"
                 alt="Ploomber logo"
-                width={50}
-                height={50}
-                className="mx-auto"
+                width={260}
+                height={90}
+                className="h-8 w-auto"
               />
             </Link>
             <h1 className="mt-6 text-3xl font-bold">Welcome</h1>

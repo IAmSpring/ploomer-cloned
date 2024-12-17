@@ -7,12 +7,7 @@ export const BRAND_IMAGES = {
 }
 
 export const FRAMEWORK_LOGOS = {
-  panel: "/images/panel.png",
-  dash: "/images/dash.png",
-  streamlit: "/images/streamlit.png",
-  chainlit: "/images/chainlit.png",
-  fastapi: "/images/flask.png",
-  flask: "/images/flask.png"
+  frameworks: "/images/features/features-frameworks.png"
 }
 
 export const FEATURE_IMAGES = {

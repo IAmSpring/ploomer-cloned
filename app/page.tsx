@@ -7,7 +7,6 @@ import { EnterpriseFeatures } from "@/app/components/enterprise-features"
 import { CustomizationCTA } from "@/app/components/customization-cta"
 import { Testimonials } from "@/app/components/testimonials"
 import { FeaturedSection } from "@/app/components/featured-section"
-import Footer from "@/app/components/footer"
 
 export default function Home() {
   return (
@@ -21,7 +20,6 @@ export default function Home() {
       <CustomizationCTA />
       <Testimonials />
       <FeaturedSection />
-      <Footer />
     </main>
   )
 } 

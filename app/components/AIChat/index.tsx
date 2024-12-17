@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { chat, Tool, tools } from '@/app/services/openai'
-import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid'
+import { MicrophoneIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { useAIChat } from '@/app/contexts/AIChatContext'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -12,8 +12,10 @@ import { DemoStep, DemoResponses } from '@/app/types/demo'
 import { socketService } from '@/app/services/socket'
 import { aiService } from '@/app/services/ai'
 
+type MessageRole = 'user' | 'assistant' | 'system'
+
 interface Message {
-  role: 'user' | 'assistant' | 'system'
+  role: MessageRole
   content: string
   toolCalls?: any[]
   isAudio?: boolean
@@ -32,6 +34,7 @@ export default function AIChat() {
   const router = useRouter()
   const { data: session } = useSession()
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -104,11 +107,21 @@ export default function AIChat() {
   }, [])
 
   useEffect(() => {
-    aiService.initialize()
-    return () => {
-      aiService.cleanup()
+    const initAI = async () => {
+      try {
+        await aiService.initialize()
+        setIsInitialized(true)
+      } catch (error) {
+        console.log('AI initialization error (expected in development):', error)
+        // Still set as initialized to prevent loading state
+        setIsInitialized(true)
+      }
     }
-  }, [])
+
+    if (!isInitialized) {
+      initAI()
+    }
+  }, [isInitialized])
 
   useEffect(() => {
     const checkWhisper = async () => {
@@ -132,29 +145,31 @@ export default function AIChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
-
-    const userMessage = {
-      role: 'user' as const,
-      content: input
-    }
-
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
+    if (!input.trim() || isLoading) return
 
     try {
-      const response = await aiService.chat([...messages, userMessage])
-      setMessages(prev => [...prev, response])
+      setIsLoading(true)
+      const newMessage: Message = { 
+        role: 'user', 
+        content: input 
+      }
+      setMessages(prev => [...prev, newMessage])
+      setInput('')
+
+      const response = await aiService.chat([...messages, newMessage])
+      setMessages(prev => [...prev, {
+        role: response.role as MessageRole,
+        content: response.content
+      }])
     } catch (error) {
       console.error('Chat error:', error)
       setMessages(prev => [...prev, {
-        role: 'system',
-        content: 'Sorry, there was an error processing your request.'
+        role: 'system' as MessageRole,
+        content: 'Sorry, there was an error processing your request. Make sure Ollama is running locally in development.'
       }])
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   const startRecording = async () => {
@@ -257,8 +272,15 @@ export default function AIChat() {
       exit={{ opacity: 0, y: 20, scale: 0.9 }}
       className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-lg shadow-xl flex flex-col"
     >
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex justify-between items-center">
         <h3 className="font-semibold">AI Setup Assistant</h3>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          aria-label="Close chat"
+        >
+          <XMarkIcon className="h-5 w-5 text-gray-500" />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

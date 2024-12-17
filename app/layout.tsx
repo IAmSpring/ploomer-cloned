@@ -7,7 +7,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { AnalyticsProvider } from './components/AnalyticsProvider'
-import Navbar from './components/navbar'
+import { Nav } from './components/nav'
 import Footer from "@/app/components/footer"
 import { initDatadog } from '@/lib/datadog'
 import TextAnimation from './components/TextAnimation'
@@ -46,7 +46,7 @@ export default function RootLayout({
             <AIChatProvider>
               <AnalyticsProvider>
                 <div className="min-h-screen flex flex-col">
-                  <Navbar />
+                  <Nav />
                   <main className="flex-grow">
                     {children}
                   </main>
