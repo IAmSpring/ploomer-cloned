@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
 }
 
 datasource db {
@@ -7,21 +8,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  user
+  admin
+  super_admin
+}
+
+enum Theme {
+  light
+  dark
+  system
+}
+
+enum AccessLevel {
+  basic
+  admin
+  full
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum TicketCategory {
+  technical
+  billing
+  account
+  feature_request
+  bug_report
+  other
+}
+
 model User {
-  id            String    @id @default(uuid())
+  id            String       @id @default(uuid())
   name          String?
-  email         String    @unique
+  email         String       @unique
   emailVerified DateTime?
   image         String?
-  role          String    @default("user")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          Role        @default(user)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   accounts      Account[]
   sessions      Session[]
   subscription  Subscription?
   activities    Activity[]
   reports       Report[]
   sharedReports SharedReport[]
+  settings      UserSettings?
+  createdTickets Ticket[]    @relation("TicketCreator")
+  assignedTickets Ticket[]   @relation("TicketAssignee")
+  messages       Message[]
+
+  @@index([role])
+}
+
+model UserSettings {
+  id                String      @id @default(uuid())
+  userId           String      @unique
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme            Theme       @default(light)
+  notifications    Boolean     @default(true)
+  emailNotifications Boolean   @default(true)
+  accessLevel      AccessLevel @default(basic)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([userId])
 }
 
 model Account {
@@ -41,6 +103,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([provider])
 }
 
 model Session {
@@ -107,4 +170,51 @@ model SharedReport {
 
   @@unique([reportId, userId])
   @@index([userId])
+}
+
+model Ticket {
+  id          String        @id @default(uuid())
+  title       String
+  description String        @db.Text
+  status      TicketStatus  @default(open)
+  priority    TicketPriority @default(medium)
+  category    TicketCategory
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  creatorId   String
+  creator     User          @relation("TicketCreator", fields: [creatorId], references: [id])
+  assigneeId  String?
+  assignee    User?         @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  messages    Message[]
+  
+  metadata    Json?         // For additional ticket data
+  tags        String[]      // Array of tags for categorization
+  dueDate     DateTime?     // Optional due date
+  resolvedAt  DateTime?     // When the ticket was resolved
+  
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([creatorId])
+  @@index([assigneeId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  isInternal Boolean @default(false)  // For internal notes
+  attachments String[]  // Array of attachment URLs
+  
+  @@index([userId])
+  @@index([ticketId])
+  @@index([createdAt])
 } 

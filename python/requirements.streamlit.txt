@@ -1,0 +1,36 @@
+# Streamlit and Components
+streamlit==1.28.1
+streamlit-aggrid==0.3.4.post3
+streamlit-plotly-events==0.0.6
+streamlit-extras==0.3.4
+streamlit-option-menu==0.3.6
+
+# Data Visualization (core only)
+plotly==5.18.0
+altair==5.1.2
+
+# Data Processing (minimal)
+numpy==1.26.1
+pandas==2.1.2
+scipy==1.11.3
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+redis==5.0.1
+
+# HTTP Client
+httpx==0.25.1
+
+# Utilities
+python-dotenv==1.0.0
+pyjwt==2.8.0
+tenacity==8.2.3
+structlog==23.2.0
+
+# Optional Visualization (comment out if not needed)
+# bokeh==3.3.0
+# seaborn==0.13.0
+# matplotlib==3.8.1
+# shap==0.43.0
+# lime==0.2.0.1 

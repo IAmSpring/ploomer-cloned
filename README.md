@@ -5,14 +5,22 @@ A full-featured SaaS platform built with Next.js, Prisma, Docker, and more.
 ## 🚀 Features
 
 - **Authentication & Authorization**
-  - NextAuth.js integration
-  - Role-based access control (user, admin)
-  - Secure session management
+  - NextAuth.js integration with multiple providers:
+    - Google OAuth
+    - LinkedIn OAuth
+    - Email Magic Links
+  - Role-based access control (RBAC):
+    - Super Admin: Full system access with override capabilities
+    - Admin: Full management without override abilities
+    - User: Basic access with limited permissions
+  - Secure session management with environment-aware configurations
+  - Domain-based automatic role assignment
 
 - **Database & ORM**
   - PostgreSQL for persistent storage
   - Prisma ORM with automatic migrations
   - Type-safe database operations
+  - Role-based data access control
 
 - **Caching & Real-time**
   - Redis for caching and Socket.IO
@@ -23,6 +31,59 @@ A full-featured SaaS platform built with Next.js, Prisma, Docker, and more.
   - Ollama integration for AI features
   - GPU acceleration support
   - Customizable AI models
+
+## 🛠 Role-Based Access Control
+
+### User Roles
+
+1. **Super Admin**
+   - Full system access
+   - Can override admin actions
+   - Access to all data and configurations
+   - System-wide management capabilities
+
+2. **Admin**
+   - User management
+   - Analytics access
+   - Report management
+   - Subscription management
+   - Settings configuration
+
+3. **User**
+   - Basic platform access
+   - Report creation
+   - Report sharing
+   - Analytics viewing
+
+### Permissions System
+
+```typescript
+Permissions include:
+- canManageUsers
+- canManageRoles
+- canViewAnalytics
+- canEditSettings
+- canCreateReports
+- canDeleteReports
+- canShareReports
+- canOverrideAdmin
+- canAccessAllData
+- canManageSubscriptions
+- canConfigureSystem
+```
+
+### Access Levels
+
+- **FULL**: Super admin access
+- **ADMIN**: Administrative access
+- **BASIC**: Regular user access
+
+### Development Users
+
+Automatic creation of development users:
+- `superadmin@dev.local`: Super Admin access
+- `admin@dev.local`: Admin access
+- `user@dev.local`: Regular user access
 
 ## 🛠 Tech Stack
 
@@ -123,6 +184,22 @@ REDIS_URL=redis://redis:6379
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-here
+
+# OAuth Providers
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+LINKEDIN_CLIENT_ID=your-linkedin-client-id
+LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
+
+# Email Provider
+EMAIL_SERVER_HOST=localhost
+EMAIL_SERVER_PORT=1025
+EMAIL_SERVER_USER=dev-user
+EMAIL_SERVER_PASSWORD=dev-password
+EMAIL_FROM=noreply@localhost
+
+# Admin Configuration
+ADMIN_DOMAINS=yourdomain.com,admin.yourdomain.com
 
 # Application
 NODE_ENV=development

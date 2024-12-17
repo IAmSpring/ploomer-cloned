@@ -4,15 +4,15 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-saas_platform}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -44,12 +44,16 @@ services:
     build: .
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=${NODE_ENV:-development}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-supersecret}
+      - STREAMLIT_URL=http://streamlit:8501
+      - PYTHON_API_URL=http://python-api:8000
     volumes:
       - .:/app
       - /app/node_modules
@@ -59,12 +63,71 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      python-api:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  # Python API Service
+  python-api:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./python:/app
+      - python_packages:/usr/local/lib/python3.9/site-packages
+    environment:
+      - POSTGRES_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - ENVIRONMENT=${NODE_ENV:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  # Streamlit Dashboard
+  streamlit:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./python:/app
+      - python_packages:/usr/local/lib/python3.9/site-packages
+    environment:
+      - POSTGRES_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - PYTHON_API_URL=http://python-api:8000
+      - ENVIRONMENT=${NODE_ENV:-development}
+    depends_on:
+      python-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
     networks:
       - app_network
@@ -101,4 +164,5 @@ volumes:
   postgres_data:
   redis_data:
   ollama_data:
+  python_packages:
     driver: local
