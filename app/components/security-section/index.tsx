@@ -30,7 +30,7 @@ export function SecuritySection() {
           </div>
           <div className="bg-white rounded-lg shadow-lg p-8">
             <Image
-              src="/images/features/auth-demo.png"
+              src="/images/features-auth.png"
               alt="Login interface screenshot"
               width={500}
               height={400}

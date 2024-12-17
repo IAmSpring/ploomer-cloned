@@ -94,26 +94,26 @@ export default function SignIn() {
             <button 
               type="button"
               disabled 
-              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed hover:bg-gray-100"
             >
-              <i className="fab fa-google"></i>
-              Sign in with Google
+              <i className="fab fa-google text-lg"></i>
+              <span className="text-sm font-medium">Sign in with Google</span>
             </button>
             <button 
               type="button"
               disabled 
-              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed hover:bg-gray-100"
             >
-              <i className="fab fa-linkedin"></i>
-              Sign in with LinkedIn
+              <i className="fab fa-linkedin-in text-lg"></i>
+              <span className="text-sm font-medium">Sign in with LinkedIn</span>
             </button>
             <button 
               type="button"
               disabled 
-              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md text-gray-400 bg-gray-50 cursor-not-allowed hover:bg-gray-100"
             >
-              <i className="fab fa-github"></i>
-              Sign in with GitHub
+              <i className="fab fa-github text-lg"></i>
+              <span className="text-sm font-medium">Sign in with GitHub</span>
             </button>
           </div>
 
@@ -202,7 +202,7 @@ export default function SignIn() {
             </h2>
             <div className="relative h-64">
               <Image
-                src="/images/features/features-frameworks.png"
+                src="/images/features-frameworks.png"
                 alt="Framework Demo"
                 fill
                 className="object-contain"

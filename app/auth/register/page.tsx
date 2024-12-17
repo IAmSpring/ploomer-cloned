@@ -207,7 +207,7 @@ export default function Register() {
             </h2>
             <div className="relative h-64">
               <Image
-                src="/images/features/features-frameworks.png"
+                src="/images/features-frameworks.png"
                 alt="Framework Demo"
                 fill
                 className="object-contain"

@@ -1,13 +1,13 @@
 export const BRAND_IMAGES = {
-  evidation: "/images/evidation.png",
-  disney: "/images/disney.png",
-  harvard: "/images/harvard.png",
-  paramount: "/images/paramount.png",
-  columbia: "/images/columbia-university.png"
+  evidation: "/images/evidation.webp",
+  disney: "/images/disney.webp",
+  harvard: "/images/harvard.webp",
+  paramount: "/images/paramount.webp",
+  columbia: "/images/columbia-university.webp"
 }
 
 export const FRAMEWORK_LOGOS = {
-  frameworks: "/images/features/features-frameworks.png"
+  frameworks: "/images/features-frameworks.png"
 }
 
 export const FEATURE_IMAGES = {
@@ -18,12 +18,12 @@ export const FEATURE_IMAGES = {
 }
 
 export const TOOL_IMAGES = {
-  pycon: "/images/pycon.png",
-  odsc: "/images/odsc.png",
-  pydata: "/images/pydata.png",
-  scipy: "/images/scipy.png",
-  microsoft: "/images/microsoft.png",
-  columbiaStartup: "/images/columbia-startup-lab.png",
+  pycon: "/images/pycon.webp",
+  odsc: "/images/odsc.webp",
+  pydata: "/images/pydata.webp",
+  scipy: "/images/scipy.webp",
+  microsoft: "/images/microsoft.webp",
+  columbiaStartup: "/images/columbia-startup-lab.webp",
   ycombinator: "/images/ycombinator.png"
 }
 
@@ -47,9 +47,9 @@ export const FEATURES = [
 ]
 
 export const FEATURED_LOGOS = {
-  odsc: "/images/odsc.png",
-  scipy: "/images/scipy.png",
-  columbia: "/images/columbia-startup-lab.png"
+  odsc: "/images/odsc.webp",
+  scipy: "/images/scipy.webp",
+  columbia: "/images/columbia-startup-lab.webp"
 }
 
 export const TESTIMONIALS = [
@@ -58,21 +58,21 @@ export const TESTIMONIALS = [
     author: "Filip Jankovic",
     role: "Data Science Manager",
     company: "Evidation",
-    image: "/images/testimonials/filip.webp"
+    image: "/images/filip.webp"
   },
   {
     quote: "Ploomber enabled faster iterations.",
     author: "Rowan Molony",
     role: "Data Scientist",
     company: "Dublin's Energy Agency",
-    image: "/images/testimonials/rowan.webp"
+    image: "/images/rowan.webp"
   },
   {
     quote: "The best tool I've tried. Maximum return, 0 BS.",
     author: "Matej Uhrín",
     role: "AI researcher",
     company: "CTU",
-    image: "/images/testimonials/matej.webp"
+    image: "/images/matej.webp"
   }
 ]
 
