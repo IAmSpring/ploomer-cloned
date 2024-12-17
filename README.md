@@ -21,6 +21,10 @@ A modern, full-stack SaaS analytics platform built with Next.js 14, featuring re
 - **Analytics**: PostHog, Datadog
 - **Monitoring**: Sentry
 - **Payments**: Stripe
+- **Feature Flags**: LaunchDarkly
+- **Container Orchestration**: Kubernetes
+- **CI/CD**: GitHub Actions
+- **Infrastructure**: Terraform
 
 ## 🏗 Project Structure
 ```
