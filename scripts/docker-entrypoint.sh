@@ -1,59 +1,61 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+
+set -e  # Exit on error
 
 echo "🚀 Starting deployment script..."
 
-# Wait for PostgreSQL with timeout
-timeout=30
-counter=0
-echo "🟡 Waiting for PostgreSQL to start..."
-until nc -z postgres 5432 || [ $counter -eq $timeout ]; do
-  counter=$((counter+1))
-  sleep 1
-done
+# Function to wait for a service
+wait_for_service() {
+    local host=$1
+    local port=$2
+    local service=$3
+    
+    echo "🟡 Waiting for $service to start..."
+    until nc -z $host $port; do
+        echo "⏳ Waiting for $service connection..."
+        sleep 2
+    done
+    echo "✅ Connected to $service ($host:$port)"
+}
 
-if [ $counter -eq $timeout ]; then
-  echo "❌ Failed to connect to PostgreSQL within $timeout seconds"
-  exit 1
-fi
+# Function to handle Prisma setup
+setup_prisma() {
+    echo "📦 Setting up Prisma..."
+    
+    # Check if Prisma client is stale by comparing schema modification time with client generation time
+    SCHEMA_MTIME=$(stat -c %Y prisma/schema.prisma 2>/dev/null || stat -f %m prisma/schema.prisma)
+    CLIENT_MTIME=$(stat -c %Y node_modules/.prisma/client/index.js 2>/dev/null || stat -f %m node_modules/.prisma/client/index.js 2>/dev/null || echo 0)
+    
+    if [ $SCHEMA_MTIME -gt $CLIENT_MTIME ]; then
+        echo "🔄 Schema changes detected, regenerating Prisma client..."
+        npx prisma generate
+    else
+        echo "✅ Prisma client is up to date"
+    fi
+    
+    echo "🔄 Running database migrations..."
+    npx prisma migrate deploy
+    
+    if [ "$NODE_ENV" != "production" ]; then
+        echo "🌱 Seeding database with initial data..."
+        npx prisma db seed
+    fi
+}
 
-# Wait for Redis with timeout
-counter=0
-echo "🟡 Waiting for Redis to start..."
-until nc -z redis 6379 || [ $counter -eq $timeout ]; do
-  counter=$((counter+1))
-  sleep 1
-done
-
-if [ $counter -eq $timeout ]; then
-  echo "❌ Failed to connect to Redis within $timeout seconds"
-  exit 1
-fi
+# Wait for required services
+wait_for_service postgres 5432 "PostgreSQL"
+wait_for_service redis 6379 "Redis"
 
 echo "🟢 All services are ready!"
 
-# Setup database and generate types
-echo "📦 Setting up database and generating types..."
+# Setup Prisma and database
+setup_prisma
 
-# Generate Prisma Client
-echo "⚙️ Generating Prisma Client..."
-npx prisma generate
-
-# Run migrations
-echo "🔄 Running database migrations..."
-# Reset the database in development
-if [ "$NODE_ENV" = "development" ]; then
-  echo "🗑️ Resetting database..."
-  npx prisma migrate dev --name init
+# Start the application based on NODE_ENV
+if [ "$NODE_ENV" = "production" ]; then
+    echo "🚀 Starting in production mode..."
+    npm run start
 else
-  npx prisma migrate deploy
+    echo "🚀 Starting in development mode..."
+    npm run dev
 fi
-
-if [ "$NODE_ENV" = "development" ]; then
-  echo "🌱 Seeding database with sample data..."
-  npx prisma db seed
-fi
-
-# Start the application
-echo "🚀 Starting Next.js..."
-exec "$@" 
