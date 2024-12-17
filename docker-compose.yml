@@ -1,96 +1,13 @@
 version: '3.8'
 
+x-common-variables: &common-variables
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/saas_platform?schema=public
+  REDIS_URL: redis://redis:6379
+  NODE_ENV: development
+  NEXTAUTH_URL: http://localhost:3000
+  NEXTAUTH_SECRET: dev-secret-do-not-use-in-production
+
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - NODE_ENV=development
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/saas_platform?schema=public
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=development
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=dev-secret-do-not-use-in-production
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-      - /app/prisma
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      python-api:
-        condition: service_healthy
-      streamlit:
-        condition: service_started
-    networks:
-      - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-
-  python-api:
-    build:
-      context: ./python
-      dockerfile: Dockerfile.api
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./python:/app
-      - python_packages:/usr/local/lib/python3.9/site-packages
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  streamlit:
-    build:
-      context: ./python
-      dockerfile: Dockerfile.streamlit
-    ports:
-      - "8501:8501"
-    volumes:
-      - ./python:/app
-      - python_packages:/usr/local/lib/python3.9/site-packages
-    environment:
-      - PYTHONPATH=/app
-    depends_on:
-      python-api:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 30s
-
   postgres:
     image: postgres:15
     ports:
@@ -128,6 +45,87 @@ services:
       retries: 5
       start_period: 5s
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
+        - BUILDKIT_INLINE_CACHE=1
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *common-variables
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      - /app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  python-api:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./python:/app
+      - python_packages:/usr/local/lib/python3.9/site-packages
+    environment:
+      <<: *common-variables
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  streamlit:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.streamlit
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./python/dashboard:/app/dashboard
+    environment:
+      <<: *common-variables
+      PYTHONPATH: /app
+    depends_on:
+      python-api:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -135,13 +133,6 @@ services:
       - ollama_data:/root/.ollama
     ports:
       - "11434:11434"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     networks:
       - app_network
     restart: unless-stopped
