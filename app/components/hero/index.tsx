@@ -41,7 +41,7 @@ export function Hero() {
             <p className="text-lg text-gray-600 flex items-center justify-center gap-3">
               Backed by
               <Image
-                src="/images/ycombinator.svg"
+                src="/images/ycombinator.png"
                 alt="Y Combinator"
                 width={120}
                 height={30}

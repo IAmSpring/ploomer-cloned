@@ -58,21 +58,21 @@ export const TESTIMONIALS = [
     author: "Filip Jankovic",
     role: "Data Science Manager",
     company: "Evidation",
-    image: "/images/testimonials/filip.png"
+    image: "/images/testimonials/filip.webp"
   },
   {
     quote: "Ploomber enabled faster iterations.",
     author: "Rowan Molony",
     role: "Data Scientist",
     company: "Dublin's Energy Agency",
-    image: "/images/testimonials/rowan.png"
+    image: "/images/testimonials/rowan.webp"
   },
   {
     quote: "The best tool I've tried. Maximum return, 0 BS.",
     author: "Matej Uhrín",
     role: "AI researcher",
     company: "CTU",
-    image: "/images/testimonials/matej.png"
+    image: "/images/testimonials/matej.webp"
   }
 ]
 

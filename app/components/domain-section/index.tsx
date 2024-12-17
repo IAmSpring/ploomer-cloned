@@ -10,7 +10,7 @@ export function DomainSection() {
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
           <div className="bg-[#1E1E1E] rounded-lg p-4">
             <Image
-              src="/images/features/domain-config.png"
+              src="/images/features-domain.png"
               alt="Domain configuration interface"
               width={500}
               height={300}
@@ -26,13 +26,13 @@ export function DomainSection() {
             </p>
             <div className="flex gap-4">
               <Link 
-                href="https://www.platform.ploomber.io/register"
+                href="/register"
                 className="btn btn-primary"
               >
                 Get Started
               </Link>
               <Link 
-                href="https://docs.cloud.ploomber.io"
+                href="/docs"
                 className="btn border border-gray-300 hover:bg-gray-50"
               >
                 Read Docs
