@@ -25,6 +25,8 @@ A modern, full-stack SaaS analytics platform built with Next.js 14, featuring re
 - **Container Orchestration**: Kubernetes
 - **CI/CD**: GitHub Actions
 - **Infrastructure**: Terraform
+- **Stage Management**: Docker Compose with multi-stage builds
+- **Feature Management**: LaunchDarkly with environment segmentation
 
 ## 🏗 Project Structure
 ```
