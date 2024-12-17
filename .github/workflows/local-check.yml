@@ -1,0 +1,96 @@
+name: Local Development Check
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '*/30 * * * *'  # Run every 30 minutes
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check Health Endpoint
+      id: health
+      continue-on-error: true
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health || echo "failed")
+        echo "status=$response" >> $GITHUB_OUTPUT
+
+    - name: Check Database
+      id: db
+      continue-on-error: true
+      run: |
+        pg_isready -h localhost -p 5432 || echo "status=failed" >> $GITHUB_OUTPUT
+
+    - name: Check Redis
+      id: redis
+      continue-on-error: true
+      run: |
+        redis-cli ping || echo "status=failed" >> $GITHUB_OUTPUT
+
+    - name: Auto-heal Services
+      if: steps.health.outputs.status != '200' || steps.db.outputs.status == 'failed' || steps.redis.outputs.status == 'failed'
+      run: |
+        echo "🔄 Starting auto-heal process..."
+        
+        # Check if Docker is running
+        if ! docker info > /dev/null 2>&1; then
+          echo "🚀 Starting Docker daemon..."
+          sudo systemctl start docker
+        fi
+        
+        # Check and restart services using docker-compose
+        if [ -f "docker-compose.yml" ]; then
+          echo "📦 Using docker-compose..."
+          docker-compose up -d
+        else
+          # Fallback to individual container checks
+          if [ "${{ steps.db.outputs.status }}" == "failed" ]; then
+            echo "🔄 Restarting PostgreSQL..."
+            docker restart postgres || docker run -d \
+              --name postgres \
+              -e POSTGRES_USER=postgres \
+              -e POSTGRES_PASSWORD=postgres \
+              -p 5432:5432 \
+              postgres:15
+          fi
+          
+          if [ "${{ steps.redis.outputs.status }}" == "failed" ]; then
+            echo "🔄 Restarting Redis..."
+            docker restart redis || docker run -d \
+              --name redis \
+              -p 6379:6379 \
+              redis:alpine
+          fi
+        fi
+        
+        # Wait for services to be ready
+        echo "⏳ Waiting for services to be ready..."
+        sleep 10
+        
+        # Run database migrations if needed
+        if [ -f "prisma/schema.prisma" ]; then
+          echo "🔄 Running database migrations..."
+          npx prisma migrate deploy
+        fi
+        
+        # Restart the application if needed
+        if [ "${{ steps.health.outputs.status }}" != "200" ]; then
+          echo "🔄 Restarting application..."
+          if [ -f "package.json" ]; then
+            npm run dev &
+          fi
+        fi
+
+    - name: Notify on Failure
+      if: failure()
+      run: |
+        echo "❌ Auto-heal process failed. Manual intervention may be required."
+        # Add notification logic here (e.g., email, Slack, etc.)
+
+    - name: Verify Recovery
+      if: success()
+      run: |
+        echo "✅ Services recovered successfully"
+        curl -s http://localhost:3000/api/health 

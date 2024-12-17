@@ -1,0 +1,55 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-deps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Check for updates
+      id: ncu
+      run: |
+        npx npm-check-updates --target minor > updates.txt
+        cat updates.txt
+        if grep -q "All dependencies match the latest package versions" updates.txt; then
+          echo "has_updates=false" >> $GITHUB_OUTPUT
+        else
+          echo "has_updates=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Update dependencies
+      if: steps.ncu.outputs.has_updates == 'true'
+      run: |
+        npx npm-check-updates -u --target minor
+        npm install
+
+    - name: Create Pull Request
+      if: steps.ncu.outputs.has_updates == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore(deps): update dependencies"
+        title: "chore(deps): update dependencies"
+        body: |
+          Automated dependency updates.
+          
+          Updates were made using `npm-check-updates` targeting minor version updates.
+          Please review the changes and merge if tests pass.
+        branch: "chore/dependency-updates"
+        base: "develop"
+        labels: "dependencies" 
