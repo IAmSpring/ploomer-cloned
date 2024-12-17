@@ -19,10 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/app/*": ["./app/*"]
+      "@/*": ["./*"]
     },
-    "types": ["node", "openai"]
+    "types": ["node", "openai"],
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",
