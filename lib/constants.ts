@@ -80,17 +80,17 @@ export const NAV_LINKS = [
   { name: 'Home', href: '/' },
   { name: 'Blog', href: '/blog' },
   { name: 'Pricing', href: '/pricing' },
-  { name: 'Explore', href: 'https://www.platform.ploomber.io/explore', external: true },
-  { name: 'Docs', href: 'https://docs.cloud.ploomber.io', external: true },
+  { name: 'Explore', href: '/explore' },
+  { name: 'Docs', href: '/docs' },
   { name: 'Contact', href: '/contact' }
 ]
 
 export const FOOTER_LINKS = {
   quickLinks: [
     { name: 'Blog', href: '/blog' },
-    { name: 'Docs', href: 'https://docs.cloud.ploomber.io' },
+    { name: 'Docs', href: '/docs' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'Careers', href: 'https://www.ycombinator.com/companies/ploomber/jobs' },
+    { name: 'Careers', href: '/jobs' },
     { name: 'Terms & Conditions', href: '/terms-and-conditions' },
     { name: 'Privacy', href: '/privacy' }
   ],
