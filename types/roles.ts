@@ -1,14 +1,18 @@
-import type { Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
-// Define the Role type based on Prisma's schema
-export type Role = 'user' | 'admin' | 'super_admin';
+// Define UserRole enum to match Prisma schema
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
+}
 
-// Constants for role values that match the Prisma schema
+// Constants for role values
 export const ROLES = {
-  SUPER_ADMIN: 'super_admin',
-  ADMIN: 'admin',
-  USER: 'user',
-} as const satisfies Record<string, Role>;
+  SUPER_ADMIN: UserRole.SUPER_ADMIN,
+  ADMIN: UserRole.ADMIN,
+  USER: UserRole.USER,
+} as const;
 
 // Base user data type
 export type UserData = {
@@ -16,23 +20,26 @@ export type UserData = {
   name?: string | null;
   emailVerified?: Date | null;
   image?: string | null;
-  role: Role;
+  role: UserRole;
 };
 
 // Prisma-specific types for operations
-export type PrismaUserCreate = Omit<Prisma.UserCreateInput, 'role'> & {
-  role: Role;
+export type PrismaUserCreate = {
+  email: string;
+  name?: string | null;
+  emailVerified?: Date | null;
+  image?: string | null;
+  role?: UserRole;
+  password?: string;
 };
 
-export type PrismaUserUpdate = Omit<Prisma.UserUncheckedUpdateInput, 'role'> & {
-  role?: Role;
-};
-
-// Type for user operations
-export type UserOperations = {
-  create: PrismaUserCreate;
-  update: PrismaUserUpdate;
-  where: Prisma.UserWhereUniqueInput;
+export type PrismaUserUpdate = {
+  email?: string;
+  name?: string | null;
+  emailVerified?: Date | null;
+  image?: string | null;
+  role?: UserRole;
+  password?: string;
 };
 
 export type RolePermissions = {
@@ -59,8 +66,8 @@ export type RolePermissions = {
   canManageTicketTags: boolean;
 };
 
-export const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
-  super_admin: {
+export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
+  [UserRole.SUPER_ADMIN]: {
     canManageUsers: true,
     canManageRoles: true,
     canViewAnalytics: true,
@@ -83,7 +90,7 @@ export const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
     canSetTicketPriority: true,
     canManageTicketTags: true,
   },
-  admin: {
+  [UserRole.ADMIN]: {
     canManageUsers: true,
     canManageRoles: false,
     canViewAnalytics: true,
@@ -106,7 +113,7 @@ export const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
     canSetTicketPriority: true,
     canManageTicketTags: true,
   },
-  user: {
+  [UserRole.USER]: {
     canManageUsers: false,
     canManageRoles: false,
     canViewAnalytics: true,
@@ -137,4 +144,11 @@ export const ACCESS_LEVELS = {
   BASIC: 'basic',
 } as const;
 
-export type AccessLevel = typeof ACCESS_LEVELS[keyof typeof ACCESS_LEVELS]; 
+export type AccessLevel = typeof ACCESS_LEVELS[keyof typeof ACCESS_LEVELS];
+
+// Extend Prisma Client types
+declare global {
+  namespace PrismaJson {
+    type UserRole = typeof UserRole;
+  }
+} 

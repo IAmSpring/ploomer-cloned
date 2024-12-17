@@ -19,10 +19,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "bcrypt": ["./node_modules/@types/bcrypt"]
     },
-    "types": ["node", "openai"],
-    "baseUrl": "."
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ]
   },
   "include": [
     "next-env.d.ts",

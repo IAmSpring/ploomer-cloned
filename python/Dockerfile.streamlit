@@ -2,30 +2,106 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install only essential system dependencies
-RUN apt-get update && apt-get install -y \
+# Step 1: Install system dependencies and verify
+RUN set -ex && \
+    apt-get update && \
+    apt-get install -y \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    gcc \
+    python3-dev \
+    libpq-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && gcc --version \
+    && python3 --version
 
-# Set environment variables
+# Step 2: Set environment variables and verify
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
+RUN python3 -c "import os; assert os.getenv('PYTHONUNBUFFERED') == '1'"
 
-# Install Python dependencies
+# Step 3: Upgrade pip and install build tools with verification
+RUN set -ex && \
+    pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip --version && \
+    python3 -c "import wheel; print(wheel.__version__)"
+
+# Step 4: Install Streamlit explicitly and verify
+RUN set -ex && \
+    pip install --no-cache-dir streamlit==1.28.1 && \
+    streamlit --version && \
+    python3 -c "import streamlit; print(f'Streamlit {streamlit.__version__} installed successfully')"
+
+# Step 5: Copy requirements file
 COPY requirements.streamlit.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Step 6: Install other requirements and verify each major package
+RUN set -ex && \
+    pip install --no-cache-dir -r requirements.txt && \
+    python3 -c "import pandas; print(f'pandas {pandas.__version__} installed')" && \
+    python3 -c "import numpy; print(f'numpy {numpy.__version__} installed')" && \
+    python3 -c "import plotly; print(f'plotly {plotly.__version__} installed')" && \
+    pip list
 
-# Expose port
+# Step 7: Create necessary directories and verify
+RUN set -ex && \
+    mkdir -p /app/dashboard && \
+    test -d /app/dashboard && \
+    echo "Directory structure verified"
+
+# Step 8: Copy dashboard files and verify
+COPY dashboard /app/dashboard/
+RUN set -ex && \
+    test -d /app/dashboard && \
+    ls -la /app/dashboard
+
+# Step 9: Create and verify wrapper script
+RUN set -ex && \
+    echo '#!/bin/bash\n\
+set -e\n\
+\n\
+echo "Starting Streamlit service..."\n\
+\n\
+# Function to check if Streamlit is ready\n\
+wait_for_streamlit() {\n\
+    echo "Waiting for Streamlit to be ready..."\n\
+    timeout=30\n\
+    counter=0\n\
+    while ! curl -s http://localhost:8501/_stcore/health >/dev/null; do\n\
+        counter=$((counter + 1))\n\
+        if [ "$counter" -gt "$timeout" ]; then\n\
+            echo "Timeout waiting for Streamlit"\n\
+            return 1\n\
+        fi\n\
+        echo "Waiting for Streamlit... ($counter/$timeout)"\n\
+        sleep 1\n\
+    done\n\
+    echo "Streamlit is ready!"\n\
+    return 0\n\
+}\n\
+\n\
+# Verify Python environment before starting\n\
+python3 -c "import streamlit; import pandas; import numpy; import plotly"\n\
+\n\
+# Main service loop with error handling\n\
+while true; do\n\
+    echo "Starting Streamlit server..."\n\
+    streamlit run dashboard/main.py --server.port=8501 --server.address=0.0.0.0 || {\n\
+        echo "Streamlit crashed, waiting 5 seconds before restart..."\n\
+        sleep 5\n\
+    }\n\
+done' > /app/start.sh && \
+    chmod +x /app/start.sh && \
+    test -x /app/start.sh
+
+# Step 10: Expose port
 EXPOSE 8501
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8501/healthz || exit 1
+# Step 11: Health check with proper waiting
+HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
 
-# Start Streamlit server
-CMD ["streamlit", "run", "dashboard/main.py", "--server.port=8501", "--server.address=0.0.0.0"] 
+# Step 12: Start Streamlit with the wrapper script
+CMD ["/app/start.sh"] 

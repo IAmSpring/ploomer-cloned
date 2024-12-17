@@ -8,10 +8,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  user
-  admin
-  super_admin
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
 }
 
 enum Theme {
@@ -53,9 +53,10 @@ model User {
   id            String       @id @default(uuid())
   name          String?
   email         String       @unique
+  password      String?      @db.Text
   emailVerified DateTime?
   image         String?
-  role          Role        @default(user)
+  role          UserRole     @default(USER)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   accounts      Account[]

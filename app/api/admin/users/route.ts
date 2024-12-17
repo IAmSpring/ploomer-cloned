@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import type { User } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
+import { ROLES } from '@/types/roles';
 
 interface UserUpdate {
   userId: string;
   updates: {
-    role: string;
+    role: UserRole;
   };
 }
 
@@ -25,7 +26,7 @@ const userSelectFields = {
 export async function GET() {
   const session = await getServerSession(authOptions);
   
-  if (!session?.user?.role || session.user.role !== 'admin') {
+  if (!session?.user?.role || session.user.role !== ROLES.ADMIN) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -39,7 +40,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
   
-  if (!session?.user?.role || session.user.role !== 'admin') {
+  if (!session?.user?.role || session.user.role !== ROLES.ADMIN) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 

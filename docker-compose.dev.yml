@@ -1,5 +1,22 @@
 version: '3.8'
 
+x-common-variables: &common-variables
+  NODE_ENV: development
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/saas_platform?schema=public
+  REDIS_URL: redis://redis:6379
+  NEXTAUTH_URL: http://localhost:3000
+  NEXTAUTH_SECRET: dev-secret-do-not-use-in-prod
+  # Development email settings (will be ignored in production)
+  EMAIL_SERVER_HOST: localhost
+  EMAIL_SERVER_PORT: 1025
+  EMAIL_SERVER_USER: test
+  EMAIL_SERVER_PASSWORD: test
+  EMAIL_FROM: noreply@localhost
+  # Development admin domains
+  ADMIN_DOMAINS: dev.local,admin.dev.local
+  # OpenAI API Key with default development value
+  OPENAI_API_KEY: sk-dev-key-not-required-for-local-development
+
 services:
   app:
     build:
@@ -7,19 +24,14 @@ services:
       dockerfile: Dockerfile
       args:
         - NODE_ENV=development
-    ports:
-      - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/saas_platform?schema=public
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=development
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=dev-secret-do-not-use-in-production
+      <<: *common-variables
     volumes:
       - .:/app
       - /app/node_modules
       - /app/.next
-      - /app/prisma
+    ports:
+      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,89 +39,85 @@ services:
         condition: service_healthy
       python-api:
         condition: service_healthy
-      streamlit:
-        condition: service_started
-    networks:
-      - app_network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app_network
 
   python-api:
     build:
       context: ./python
       dockerfile: Dockerfile.api
-    ports:
-      - "8000:8000"
+    environment:
+      <<: *common-variables
     volumes:
       - ./python:/app
       - python_packages:/usr/local/lib/python3.9/site-packages
+    ports:
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - app_network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app_network
 
   streamlit:
     build:
       context: ./python
       dockerfile: Dockerfile.streamlit
-    ports:
-      - "8501:8501"
+    environment:
+      <<: *common-variables
     volumes:
       - ./python:/app
       - python_packages:/usr/local/lib/python3.9/site-packages
-    environment:
-      - PYTHONPATH=/app
+    ports:
+      - "8501:8501"
     depends_on:
       python-api:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
     networks:
       - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 30s
 
   postgres:
     image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: saas_platform
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=saas_platform
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app_network
 
   redis:
     image: redis:alpine
@@ -118,18 +126,18 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
-    networks:
-      - app_network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
+    networks:
+      - app_network
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama
     container_name: ollama
     volumes:
       - ollama_data:/root/.ollama
@@ -142,8 +150,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    networks:
-      - app_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/api/health"]
@@ -151,6 +157,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    networks:
+      - app_network
 
 networks:
   app_network:
@@ -161,4 +169,3 @@ volumes:
   redis_data:
   ollama_data:
   python_packages:
-    driver: local

@@ -3,11 +3,13 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import GoogleProvider from 'next-auth/providers/google';
 import LinkedInProvider from 'next-auth/providers/linkedin';
 import EmailProvider from 'next-auth/providers/email';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import { ROLES, Role, ROLE_PERMISSIONS, RolePermissions } from '@/types/roles';
 import type { JWT } from 'next-auth/jwt';
-import type { Session, User, Account, Profile } from 'next-auth';
-import type { Prisma } from '@prisma/client';
+import type { Session, User } from 'next-auth';
+import type { Prisma, User as PrismaUser } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 // Environment configuration
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -28,6 +30,7 @@ declare module 'next-auth' {
     id: string;
     role: Role;
     email: string;
+    password?: string;
   }
 }
 
@@ -60,47 +63,90 @@ const determineUserRole = (email: string): Role => {
   return ROLES.USER;
 };
 
+const userSelectFields = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  image: true,
+  emailVerified: true,
+} as const;
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
+    // Development Credentials Provider
+    ...(isDevelopment ? [
+      CredentialsProvider({
+        id: "dev-credentials",
+        name: "Development Login",
+        credentials: {
+          email: { label: "Email", type: "email" },
+          password: { label: "Password", type: "password" }
+        },
+        async authorize(credentials) {
+          if (!credentials?.email || !credentials?.password) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              ...userSelectFields,
+              password: true,
+            }
+          });
+
+          if (!user?.password) return null;
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          if (!isPasswordValid) return null;
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role as Role
+          };
         }
-      }
-    }),
-    LinkedInProvider({
-      clientId: process.env.LINKEDIN_CLIENT_ID!,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
-      authorization: {
-        params: { scope: 'r_emailaddress r_liteprofile' }
-      }
-    }),
-    EmailProvider({
-      server: isDevelopment || isLocalhost ? {
-        host: process.env.EMAIL_SERVER_HOST || 'localhost',
-        port: parseInt(process.env.EMAIL_SERVER_PORT || '1025'),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER || 'test',
-          pass: process.env.EMAIL_SERVER_PASSWORD || 'test',
+      })
+    ] : []),
+
+    // Production Providers
+    ...(!isDevelopment ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        authorization: {
+          params: {
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code"
+          }
+        }
+      }),
+      LinkedInProvider({
+        clientId: process.env.LINKEDIN_CLIENT_ID!,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+        authorization: {
+          params: { scope: 'r_emailaddress r_liteprofile' }
+        }
+      }),
+      EmailProvider({
+        server: {
+          host: process.env.EMAIL_SERVER_HOST!,
+          port: parseInt(process.env.EMAIL_SERVER_PORT!),
+          auth: {
+            user: process.env.EMAIL_SERVER_USER!,
+            pass: process.env.EMAIL_SERVER_PASSWORD!,
+          },
+          secure: true,
         },
-        secure: false,
-      } : {
-        host: process.env.EMAIL_SERVER_HOST!,
-        port: parseInt(process.env.EMAIL_SERVER_PORT!),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER!,
-          pass: process.env.EMAIL_SERVER_PASSWORD!,
-        },
-        secure: true,
-      },
-      from: process.env.EMAIL_FROM,
-    }),
+        from: process.env.EMAIL_FROM,
+      })
+    ] : [])
   ],
   pages: {
     signIn: '/auth/signin',
@@ -108,7 +154,7 @@ export const authOptions: AuthOptions = {
     verifyRequest: '/auth/verify-request',
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       if (!user?.email) return false;
       const role = determineUserRole(user.email);
       try {
@@ -124,18 +170,18 @@ export const authOptions: AuthOptions = {
         return false;
       }
     },
-    async session({ session, user }) {
+    async session({ session, user, token }) {
       if (session?.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
-        session.user.permissions = ROLE_PERMISSIONS[user.role];
+        session.user.id = user?.id || token.id;
+        session.user.role = (user?.role || token.role) as Role;
+        session.user.permissions = ROLE_PERMISSIONS[user?.role || token.role];
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = user.role as Role;
         token.permissions = ROLE_PERMISSIONS[user.role];
       }
       return token;

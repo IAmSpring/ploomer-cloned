@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { UserRole, type Role } from '@/types/roles';
 
 interface User {
   id: string;
   name: string | null;
   email: string;
-  role: string;
+  role: Role;
   createdAt: Date;
   image: string | null;
   emailVerified: Date | null;
@@ -33,7 +34,7 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: Role) => {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'PUT',
@@ -84,12 +85,12 @@ export default function UserManagement() {
               <td className="px-6 py-4 whitespace-nowrap">
                 <select
                   value={user.role}
-                  onChange={(e) => updateUserRole(user.id, e.target.value)}
+                  onChange={(e) => updateUserRole(user.id, e.target.value as Role)}
                   className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
+                  <option value={UserRole.USER}>User</option>
+                  <option value={UserRole.ADMIN}>Admin</option>
+                  <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
                 </select>
               </td>
             </tr>

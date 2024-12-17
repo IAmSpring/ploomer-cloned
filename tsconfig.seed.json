@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
@@ -21,8 +22,10 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "noEmit": false,
+    "isolatedModules": false
   },
-  "exclude": ["node_modules"],
-  "include": ["prisma/**/*.ts"]
+  "include": ["prisma/**/*.ts"],
+  "exclude": ["node_modules"]
 } 
